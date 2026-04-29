@@ -124,3 +124,31 @@ Result:
 
 - Ticket 004 implemented for human review.
 - Ticket 005 was not started.
+
+## Ticket 005: Design System
+
+Status: Human Review
+
+Scope:
+
+- Inspected the four attached visual reference images before implementation.
+- Consolidated the current story flow around a stronger poster-like visual system.
+- Added off-white and charcoal card treatments, bold red/blue/green/magenta accent blocking, outlined hero dollar figures, checker blocks, mini pie marks, contour-line motifs, and stronger rounded story controls.
+- Kept the existing story screens, tax engine, allocation engine, source data, and client-only income state unchanged.
+- Generated mobile screenshots at 390px and 430px widths for intro, income input, tax result, big-picture allocation, one category story card, and final summary shell.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- `npm run typecheck` - passed during iteration
+- `npm run test:run` - passed during iteration
+- `npm run lint` - passed during iteration
+- Playwright screenshot capture at 390px and 430px widths - passed after visual iteration
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 005 implemented for human review.
+- Ticket 006 was not started.

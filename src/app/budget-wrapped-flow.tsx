@@ -17,32 +17,72 @@ const percentFormatter = new Intl.NumberFormat("en-AU", {
   maximumFractionDigits: 1,
 });
 
+type AccentTone = "blue" | "green" | "magenta" | "red";
+
 const storyColours = [
   {
-    surface: "bg-[#f7f0df]",
+    surface: "bg-[#f4f1ea]",
     ink: "text-[#151515]",
-    accent: "bg-[#ff3b7f]",
-    glow: "story-glow-magenta",
-  },
-  {
-    surface: "bg-[#151515]",
-    ink: "text-[#f7f0df]",
-    accent: "bg-[#38ff8b]",
-    glow: "story-glow-green",
-  },
-  {
-    surface: "bg-[#eef2ff]",
-    ink: "text-[#111827]",
-    accent: "bg-[#245cff]",
-    glow: "story-glow-blue",
-  },
-  {
-    surface: "bg-[#ffede8]",
-    ink: "text-[#171717]",
-    accent: "bg-[#ff3b2f]",
+    accent: "bg-[#df1f26]",
     glow: "story-glow-red",
+    tone: "red",
   },
-] as const;
+  {
+    surface: "bg-[#29282e]",
+    ink: "text-[#fbfaf5]",
+    accent: "bg-[#2e55ff]",
+    glow: "story-glow-blue",
+    tone: "blue",
+  },
+  {
+    surface: "bg-[#29282e]",
+    ink: "text-[#fbfaf5]",
+    accent: "bg-[#df1f26]",
+    glow: "story-glow-red",
+    tone: "red",
+  },
+  {
+    surface: "bg-[#f4f1ea]",
+    ink: "text-[#151515]",
+    accent: "bg-[#2e55ff]",
+    glow: "story-glow-blue",
+    tone: "blue",
+  },
+  {
+    surface: "bg-[#f4f1ea]",
+    ink: "text-[#151515]",
+    accent: "bg-[#bb33b6]",
+    glow: "story-glow-magenta",
+    tone: "magenta",
+  },
+  {
+    surface: "bg-[#f4f1ea]",
+    ink: "text-[#151515]",
+    accent: "bg-[#149c48]",
+    glow: "story-glow-green",
+    tone: "green",
+  },
+  {
+    surface: "bg-[#f4f1ea]",
+    ink: "text-[#151515]",
+    accent: "bg-[#2e55ff]",
+    glow: "story-glow-blue",
+    tone: "blue",
+  },
+  {
+    surface: "bg-[#29282e]",
+    ink: "text-[#fbfaf5]",
+    accent: "bg-[#149c48]",
+    glow: "story-glow-green",
+    tone: "green",
+  },
+] as const satisfies ReadonlyArray<{
+  surface: string;
+  ink: string;
+  accent: string;
+  glow: string;
+  tone: AccentTone;
+}>;
 
 type StepKind =
   | "intro"
@@ -64,6 +104,12 @@ function formatCurrency(amount: number) {
 
 function formatPercent(share: number) {
   return `${percentFormatter.format(share * 100)}%`;
+}
+
+function getAccentTone(index: number): AccentTone {
+  const tones: AccentTone[] = ["magenta", "green", "blue"];
+
+  return tones[index % tones.length];
 }
 
 function parseIncome(value: string) {
@@ -88,9 +134,10 @@ function WavyLines() {
       viewBox="0 0 420 720"
       preserveAspectRatio="none"
     >
-      <path d="M-80 120 C 50 40, 120 220, 250 130 S 420 90, 520 210" />
-      <path d="M-120 350 C 20 250, 140 450, 280 330 S 430 260, 540 390" />
-      <path d="M-80 590 C 80 490, 150 650, 300 560 S 470 500, 540 640" />
+      <path d="M-80 74 C 28 102, 96 28, 214 56 S 384 120, 520 52" />
+      <path d="M-90 122 C 46 86, 134 174, 254 118 S 404 36, 526 116" />
+      <path d="M-108 548 C 22 482, 122 612, 244 554 S 420 490, 534 604" />
+      <path d="M-90 614 C 54 664, 142 542, 274 604 S 436 706, 538 574" />
     </svg>
   );
 }
@@ -105,8 +152,51 @@ function PatternBlock() {
   );
 }
 
+function MiniPieMark({ tone }: { tone: AccentTone }) {
+  return <div aria-hidden="true" className={`mini-pie mini-pie-${tone}`} />;
+}
+
+function PosterYear() {
+  return <div aria-hidden="true" className="story-poster-year">25-26</div>;
+}
+
+interface StoryBar {
+  amount: number;
+  label: string;
+  share: number;
+  tone: AccentTone;
+}
+
+function StoryBars({
+  bars,
+  label,
+}: {
+  bars: StoryBar[];
+  label: string;
+}) {
+  return (
+    <div className="poster-bars" aria-label={label}>
+      {bars.map((bar) => (
+        <div key={bar.label} className={`poster-bar poster-bar-${bar.tone}`}>
+          <div className="poster-bar-fill-wrap">
+            <span
+              className="poster-bar-fill"
+              style={{
+                width: `${Math.max(6, Math.min(100, bar.share * 100))}%`,
+              }}
+            />
+          </div>
+          <strong>{formatCurrency(bar.amount)}</strong>
+          <span>{bar.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface StoryFrameProps {
   children: React.ReactNode;
+  currentKind: StepKind;
   currentStep: number;
   totalSteps: number;
   canGoBack: boolean;
@@ -120,6 +210,7 @@ interface StoryFrameProps {
 
 function StoryFrame({
   children,
+  currentKind,
   currentStep,
   totalSteps,
   canGoBack,
@@ -134,10 +225,14 @@ function StoryFrame({
 
   return (
     <main className="story-shell">
-      <section className={`story-card ${colour.surface} ${colour.ink}`}>
+      <section
+        className={`story-card story-card-${currentKind} story-tone-${colour.tone} ${colour.surface} ${colour.ink}`}
+        data-step={currentKind}
+      >
         <WavyLines />
         <PatternBlock />
         <div className={`story-slab ${colour.accent} ${colour.glow}`} />
+        {currentKind === "intro" && <PosterYear />}
 
         <header className="story-topbar">
           <span>Australian Budget Wrapped</span>
@@ -150,7 +245,12 @@ function StoryFrame({
           {children}
         </div>
 
-        <nav className="story-controls" aria-label="Story controls">
+        <nav
+          className={`story-controls ${
+            currentKind === "intro" ? "story-controls-intro" : ""
+          }`}
+          aria-label="Story controls"
+        >
           <button
             type="button"
             className="story-icon-button"
@@ -279,6 +379,7 @@ export function BudgetWrappedFlow() {
 
   return (
     <StoryFrame
+      currentKind={currentStep.kind}
       currentStep={stepIndex}
       totalSteps={steps.length}
       canGoBack={stepIndex > 0}
@@ -337,9 +438,10 @@ export function BudgetWrappedFlow() {
 
       {currentStep.kind === "tax" && (
         <section className="story-moment story-moment-center">
+          <MiniPieMark tone="red" />
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h2 className="story-title">{currentStep.title}</h2>
-          <p className="story-number">
+          <p className="story-number story-number-red">
             {formatCurrency(taxEstimate.totalEstimatedTax)}
           </p>
           <p className="story-copy">
@@ -353,14 +455,15 @@ export function BudgetWrappedFlow() {
         <section className="story-moment">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h2 className="story-title">{currentStep.title}</h2>
-          <div className="allocation-stack" aria-label="Top allocation preview">
-            {categoryStories.map((category) => (
-              <div key={category.slug} className="allocation-strip">
-                <span>{category.label}</span>
-                <strong>{formatCurrency(category.amount)}</strong>
-              </div>
-            ))}
-          </div>
+          <StoryBars
+            label="Top allocation preview"
+            bars={categoryStories.map((category, index) => ({
+              amount: category.amount,
+              label: category.label,
+              share: category.shareOfAdditiveBudget,
+              tone: getAccentTone(index),
+            }))}
+          />
           <p className="story-caveat">
             Proportional and illustrative. Taxes are not hypothecated.
           </p>
@@ -371,22 +474,34 @@ export function BudgetWrappedFlow() {
         <section className="story-moment story-moment-center">
           {categoryStories
             .filter((category) => category.label === currentStep.title)
-            .map((category, index) => (
-              <div key={category.slug} className="category-hit">
-                <p className="story-eyebrow">{currentStep.eyebrow}</p>
-                <h2 className="story-title">{category.label}</h2>
-                <p className="story-number">{formatCurrency(category.amount)}</p>
-                <p className="story-copy">
-                  About {formatPercent(category.shareOfAdditiveBudget)} of the
-                  additive Budget function mix.
-                </p>
-                {spotlightStories[index] && (
-                  <p className="story-pill">
-                    Spotlight: {spotlightStories[index].label}
+            .map((category) => {
+              const categoryIndex = categoryStories.findIndex(
+                (story) => story.slug === category.slug,
+              );
+              const safeCategoryIndex = Math.max(0, categoryIndex);
+              const tone = getAccentTone(safeCategoryIndex);
+
+              return (
+                <div key={category.slug} className={`category-hit tone-${tone}`}>
+                  <MiniPieMark tone={tone} />
+                  <p className="story-eyebrow">{currentStep.eyebrow}</p>
+                  <p className="story-kicker">You contributed</p>
+                  <p className={`story-number story-number-${tone}`}>
+                    {formatCurrency(category.amount)}
                   </p>
-                )}
-              </div>
-            ))}
+                  <h2 className="story-category-title">{category.label}</h2>
+                  <p className="story-copy">
+                    About {formatPercent(category.shareOfAdditiveBudget)} of the
+                    additive Budget function mix.
+                  </p>
+                  {spotlightStories[safeCategoryIndex] && (
+                    <p className="story-pill">
+                      Spotlight: {spotlightStories[safeCategoryIndex].label}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
         </section>
       )}
 
