@@ -96,3 +96,31 @@ Result:
 
 - Ticket 003 implemented for human review.
 - Ticket 004 was not started.
+
+## Ticket 004: Mobile Story Flow
+
+Status: Human Review
+
+Scope:
+
+- Added `docs/product/DESIGN_DIRECTION.md` from the supplied design direction because ticket 004 requires it as the visible design source of truth.
+- Replaced the placeholder home route with a client-side wrapped-style story flow.
+- Added screens for intro, taxable income input, tax estimate, big-picture allocation, three category story cards, and a final summary shell.
+- Kept taxable income in React component state only; no storage, cookies, server actions, or analytics.
+- Integrated existing tax and allocation engines without changing their logic.
+- Added motion and decorative wavy/poster motifs with reduced-motion handling.
+- Added mobile Playwright interaction coverage for input, next/back/restart, final shell, caveat visibility, and empty browser storage.
+
+Commands run:
+
+- `npm run test:run` - passed
+- `npm run test:e2e` - passed during iteration
+- Playwright CLI mobile screenshot check at 390px width - passed after reducing headline scale to prevent clipping
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 004 implemented for human review.
+- Ticket 005 was not started.

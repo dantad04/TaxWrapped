@@ -1,6 +1,6 @@
 # Ticket 004: Mobile Story Flow
 
-Status: Ready
+Status: Human Review
 
 ## Goal
 
