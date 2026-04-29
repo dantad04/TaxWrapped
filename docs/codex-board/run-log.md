@@ -23,3 +23,26 @@ Result:
 - Initial setup slice completed.
 - Future tickets remain `Status: Ready`.
 - Ticket 001 was not started.
+
+## Ticket 001: Budget Data Model
+
+Status: Human Review
+
+Scope:
+
+- Added typed source registry for Budget Paper No. 1 2025-26 Statement 5 tables.
+- Added 2025-26 top-level function expense dataset and selected non-additive spotlight programs.
+- Added pure budget data helpers.
+- Added focused unit tests for source coverage, amounts, labels, slugs, non-additive spotlight handling, and published-total rounding tolerance.
+- Updated product sources and methodology docs for the budget data model only.
+
+Commands run:
+
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 001 implemented for human review.
+- Ticket 002 was not started.
