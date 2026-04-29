@@ -1,6 +1,6 @@
 # Ticket 003: Allocation Engine
 
-Status: Ready
+Status: Human Review
 
 ## Goal
 

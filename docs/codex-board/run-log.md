@@ -71,3 +71,28 @@ Result:
 
 - Ticket 002 implemented for human review.
 - Ticket 003 was not started.
+
+## Ticket 003: Allocation Engine
+
+Status: Human Review
+
+Scope:
+
+- Added pure allocation types, cent rounding helpers, and Budget allocation functions.
+- Added proportional allocation across additive top-level Budget functions.
+- Added non-additive spotlight allocation helpers for later story highlights.
+- Added deterministic largest-remainder cent rounding for final summary allocations.
+- Added focused unit tests for zero tax, representative totals, determinism, additive/non-additive handling, source linkage, negative input, small totals, and rounding tie-breaks.
+- Updated methodology docs for allocation assumptions only.
+
+Commands run:
+
+- `npm run test:run` - passed
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 003 implemented for human review.
+- Ticket 004 was not started.

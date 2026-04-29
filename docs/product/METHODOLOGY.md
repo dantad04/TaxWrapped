@@ -1,8 +1,8 @@
 # Methodology
 
-Status: Budget data model and tax estimate engine added
+Status: Budget data model, tax estimate engine, and allocation engine added
 
-This document will be completed in future tickets after the allocation engine is implemented and reviewed.
+This document will be expanded in future tickets as the user-facing story flow and final explanatory copy are reviewed.
 
 ## Budget Data Model
 
@@ -39,10 +39,21 @@ The v1 estimate excludes:
 
 Negative taxable income inputs are treated as zero. Monetary outputs are rounded deterministically to cents.
 
+## Allocation Engine
+
+The allocation engine takes the user's estimated Commonwealth tax amount and allocates it proportionally across Australian Government Budget categories.
+
+- Allocations are illustrative only.
+- Taxes are not hypothecated.
+- The allocation does not imply that a user's exact dollars went to specific functions or programs.
+- Final summary allocations use additive top-level Budget functions from Statement 5, Table 5.3.
+- The top-level Budget function rows are normalised against their own additive row total of AUD 785,671 million, not the rounded published total of AUD 785,670 million.
+- Spotlight programs from Table 5.3.1 are non-additive highlights and must not be added to the final summary total.
+- Final summary rounding uses a deterministic largest-remainder method at cent precision so displayed function allocations sum exactly to the user's estimated tax total.
+- Stable tie-breaking follows original Budget function order.
+
 Planned methodology coverage:
 
-- How Australian Government spending categories are selected.
-- How the estimated tax amount is proportionally allocated across spending categories.
 - Why the result is illustrative and not an exact trace of a user's tax dollars.
 
 Core caveat:
