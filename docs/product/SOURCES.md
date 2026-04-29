@@ -1,8 +1,8 @@
 # Sources
 
-Status: Budget data source added
+Status: Budget and tax sources added
 
-This document will be expanded in future tickets after tax assumptions, allocation methodology, and privacy copy are reviewed.
+This document will be expanded in future tickets after allocation methodology and privacy copy are reviewed.
 
 ## Budget Expenses
 
@@ -14,5 +14,19 @@ This document will be expanded in future tickets after tax assumptions, allocati
 
 ## Pending Source Areas
 
-- Australian resident income tax rates and tax-engine assumptions.
 - Final explanatory copy for methodology and caveats.
+
+## Tax Estimate
+
+- Source: Australian Taxation Office, Tax rates - Australian resident.
+- URL: https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents
+- Section: Resident tax rates 2025-26.
+- Use: Australian resident individual income tax rates before Medicare levy.
+
+- Source: Australian Taxation Office, Low income tax offset.
+- URL: https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset
+- Use: Low income tax offset thresholds and taper rates.
+
+- Source: Australian Taxation Office, Medicare levy.
+- URL: https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy
+- Use: Simplified Medicare levy setting at 2% of taxable income.
