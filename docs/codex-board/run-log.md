@@ -436,3 +436,34 @@ Result:
 
 - Ticket 014 implemented for human review.
 - No later ticket was started.
+
+## Ticket 015: Australia Receipt Coda Card
+
+Status: Human Review
+
+Scope:
+
+- Added a final off-white "Zooming out" coda card after the personal illustrative receipt.
+- Derived the national hero figure from `auBudget2025_26.totalExpensesM` and formatted it as `$785.7B`.
+- Added a pure helper for the national-total formatter and the "1 in Y" scale calculation, including nearest-1,000 rounding above 100,000 and zero-tax omission.
+- Applied the existing count-up pattern to the `$785.7B` hero figure.
+- Added Share preview, Methodology, Sources, and Privacy links to the coda card.
+- Updated story progression so the personal receipt advances to the coda and Restart from the coda returns to the intro.
+- Added focused unit tests for total formatting, representative scale calculations, zero-tax handling, and banned political/value-laden coda source terms.
+- Updated Playwright coverage for the coda card after the personal receipt and restart behavior.
+- Kept tax, Budget, allocation, source data, storage, analytics, and political copy scope unchanged.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- `npm run typecheck` - failed once on literal inference for the total expenses helper, then passed after widening helper parameters to `number`
+- `npm run test:run -- tests/unit/australia-receipt-coda.test.ts` - passed
+- `npm run test:e2e` - passed during iteration
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 015 implemented for human review.
+- No later ticket was started.

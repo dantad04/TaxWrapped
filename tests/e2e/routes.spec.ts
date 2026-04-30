@@ -181,6 +181,20 @@ test.describe("mobile story flow", () => {
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Sources" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Privacy" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(
+      page.getByRole("heading", {
+        name: "Australia's 2025-26 Commonwealth bill.",
+      }),
+    ).toBeVisible();
+    await expect(page.locator(".story-card-coda")).toContainText("$785.7B");
+    await expect(page.locator(".story-card-coda")).toContainText(
+      "Your illustrative slice: $19,588",
+    );
+    await expect(
+      page.getByRole("link", { name: "Sample share preview" }),
+    ).toBeVisible();
     expect(page.url()).not.toContain("90000");
     expect(new URL(page.url()).search).toBe("");
     await expect

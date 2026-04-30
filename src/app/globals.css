@@ -635,6 +635,45 @@ button {
   opacity: 0.58;
 }
 
+.story-card-coda .story-content {
+  padding-block: clamp(1.2rem, 4svh, 3rem);
+}
+
+.story-card-coda .story-title {
+  max-width: 24rem;
+  font-size: clamp(2.18rem, 9.2vw, 5.2rem);
+}
+
+.story-moment-coda {
+  text-align: center;
+  justify-items: center;
+}
+
+.coda-total {
+  color: var(--story-blue);
+  font-size: clamp(4.1rem, 17.8vw, 7.8rem);
+  line-height: 0.76;
+  font-weight: 1000;
+  white-space: nowrap;
+  word-break: normal;
+  hyphens: none;
+  paint-order: stroke fill;
+  -webkit-text-stroke: clamp(1px, 0.45vw, 3px) var(--story-ink);
+  text-shadow: 0.045em 0.045em 0 var(--story-ink);
+}
+
+.coda-slice {
+  max-width: 23rem;
+  border: 2px solid currentColor;
+  border-radius: 1.1rem;
+  padding: 0.72rem 0.9rem;
+  background: rgba(251, 250, 245, 0.72);
+  font-size: clamp(1rem, 3.75vw, 1.28rem);
+  line-height: 1.08;
+  font-weight: 900;
+  text-wrap: balance;
+}
+
 .story-card-category .story-content,
 .story-card-spotlight .story-content {
   padding-block: clamp(0.8rem, 2.4svh, 1.8rem);

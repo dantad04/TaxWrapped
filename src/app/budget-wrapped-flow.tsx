@@ -22,6 +22,12 @@ import type {
   SpotlightProgramSlug,
 } from "@/lib/budget/model";
 import {
+  calculateReceiptScaleDenominator,
+  COMMONWEALTH_TOTAL_EXPENSES_M,
+  formatCommonwealthBill,
+  formatReceiptScaleDenominator,
+} from "@/lib/budget/australia-receipt-coda";
+import {
   calculateBudgetProgramCallouts,
   calculateBudgetDrilldownView,
   getBudgetDrilldownCategory,
@@ -190,7 +196,8 @@ type StepKind =
   | "category"
   | "spotlight"
   | "drilldown"
-  | "summary";
+  | "summary"
+  | "coda";
 
 interface StoryStep {
   kind: StepKind;
@@ -378,6 +385,70 @@ function ProgramCallouts({
         </article>
       ))}
     </div>
+  );
+}
+
+function AnimatedBillions({
+  amountM,
+  className,
+}: {
+  amountM: number;
+  className?: string;
+}) {
+  const displayedAmountM = useCountUp(amountM, 700);
+  const finalValue = formatCommonwealthBill(amountM);
+  const displayedValue = formatCommonwealthBill(displayedAmountM);
+
+  return (
+    <p
+      aria-label={finalValue}
+      className={className ? `${className} countup-currency` : "countup-currency"}
+      style={{ "--countup-width": `${finalValue.length}ch` } as CSSProperties}
+    >
+      <span
+        aria-hidden="true"
+        className="countup-currency-value"
+        suppressHydrationWarning
+      >
+        {displayedValue}
+      </span>
+    </p>
+  );
+}
+
+function AustraliaReceiptCodaCard({
+  totalTaxAmount,
+  title,
+}: {
+  totalTaxAmount: number;
+  title: string;
+}) {
+  const scaleDenominator =
+    calculateReceiptScaleDenominator(totalTaxAmount);
+
+  return (
+    <section className="story-moment story-moment-coda">
+      <p className="story-eyebrow">Zooming out</p>
+      <h2 className="story-title">{title}</h2>
+      <AnimatedBillions
+        amountM={COMMONWEALTH_TOTAL_EXPENSES_M}
+        className="coda-total"
+      />
+      {scaleDenominator !== null && (
+        <p className="coda-slice">
+          Your illustrative slice: {formatCurrency(totalTaxAmount)} — about 1
+          in {formatReceiptScaleDenominator(scaleDenominator)} of the total.
+        </p>
+      )}
+      <TransparencyLinkGroup
+        links={[
+          { href: "/share-preview", label: "Sample share preview" },
+          { href: "/methodology", label: "Methodology" },
+          { href: "/sources", label: "Sources" },
+          { href: "/privacy", label: "Privacy" },
+        ]}
+      />
+    </section>
   );
 }
 
@@ -825,6 +896,13 @@ export function BudgetWrappedFlow() {
       tone: "green",
       surface: "charcoal",
     },
+    {
+      kind: "coda",
+      eyebrow: "Zooming out",
+      title: "Australia's 2025-26 Commonwealth bill.",
+      tone: "blue",
+      surface: "paper",
+    },
   ];
 
   const currentStep = steps[stepIndex];
@@ -1145,6 +1223,13 @@ export function BudgetWrappedFlow() {
             ]}
           />
         </section>
+      )}
+
+      {!activeDrilldownView && currentStep.kind === "coda" && (
+        <AustraliaReceiptCodaCard
+          totalTaxAmount={taxEstimate.totalEstimatedTax}
+          title={currentStep.title}
+        />
       )}
     </StoryFrame>
   );
