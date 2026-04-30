@@ -60,16 +60,47 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("heading", { name: "Mapped across the Budget" }),
     ).toBeVisible();
-    await expect(page.getByText("Social security and welfare")).toBeVisible();
+    await expect(page.getByText("Social security & welfare")).toBeVisible();
     await expect(page.getByText(/Taxes are not hypothecated/)).toBeVisible();
 
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(
-      page.getByRole("heading", { name: "Social security and welfare" }),
+      page.getByRole("heading", { name: "Social security & welfare" }),
+    ).toBeVisible();
+    await expect(page.getByText(/Additive function/)).toBeVisible();
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Health" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Education" }),
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Defence" })).toBeVisible();
+
     await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Energy & resources" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "States and territories" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Non-additive spotlight", { exact: true }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Debt interest" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/not included in the final summary/),
+    ).toBeVisible();
+
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "Your illustrative receipt" }),

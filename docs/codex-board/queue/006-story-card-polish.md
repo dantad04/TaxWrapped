@@ -1,6 +1,6 @@
 # Ticket 006: Story Card Polish
 
-Status: Ready
+Status: Human Review
 
 ## Goal
 

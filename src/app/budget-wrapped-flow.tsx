@@ -5,6 +5,14 @@ import {
   allocateTaxAcrossBudgetFunctions,
   calculateSpotlightAllocation,
 } from "@/lib/allocation/budget-allocation";
+import type {
+  BudgetFunctionAllocation,
+  SpotlightAllocation,
+} from "@/lib/allocation/model";
+import type {
+  BudgetFunctionSlug,
+  SpotlightProgramSlug,
+} from "@/lib/budget/model";
 import { estimateAustralianTax2025_26 } from "@/lib/tax/australian-resident-2025-26";
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
@@ -18,70 +26,137 @@ const percentFormatter = new Intl.NumberFormat("en-AU", {
 });
 
 type AccentTone = "blue" | "green" | "magenta" | "red";
+type StorySurface = "charcoal" | "paper";
 
-const storyColours = [
-  {
+const storyPalette = {
+  red: {
     surface: "bg-[#f4f1ea]",
     ink: "text-[#151515]",
     accent: "bg-[#df1f26]",
     glow: "story-glow-red",
-    tone: "red",
   },
-  {
-    surface: "bg-[#29282e]",
-    ink: "text-[#fbfaf5]",
-    accent: "bg-[#2e55ff]",
-    glow: "story-glow-blue",
-    tone: "blue",
-  },
-  {
-    surface: "bg-[#29282e]",
-    ink: "text-[#fbfaf5]",
-    accent: "bg-[#df1f26]",
-    glow: "story-glow-red",
-    tone: "red",
-  },
-  {
+  blue: {
     surface: "bg-[#f4f1ea]",
     ink: "text-[#151515]",
     accent: "bg-[#2e55ff]",
     glow: "story-glow-blue",
-    tone: "blue",
   },
-  {
+  green: {
+    surface: "bg-[#f4f1ea]",
+    ink: "text-[#151515]",
+    accent: "bg-[#149c48]",
+    glow: "story-glow-green",
+  },
+  magenta: {
     surface: "bg-[#f4f1ea]",
     ink: "text-[#151515]",
     accent: "bg-[#bb33b6]",
     glow: "story-glow-magenta",
+  },
+} as const satisfies Record<
+  AccentTone,
+  {
+    surface: "bg-[#f4f1ea]",
+    ink: "text-[#151515]",
+    accent: string;
+    glow: string;
+  }
+>;
+
+const storySurfaces = {
+  paper: {
+    surface: "bg-[#f4f1ea]",
+    ink: "text-[#151515]",
+  },
+  charcoal: {
+    surface: "bg-[#29282e]",
+    ink: "text-[#fbfaf5]",
+  },
+} as const satisfies Record<
+  StorySurface,
+  {
+    surface: string;
+    ink: string;
+  }
+>;
+
+const FUNCTION_STORY_META = [
+  {
+    slug: "social-security-welfare",
+    title: "Social security & welfare",
+    message: "The biggest slice is care and support.",
+    detail: "Income support, seniors, disability and welfare functions anchor the Budget story.",
+    motif: "CARE",
     tone: "magenta",
   },
   {
-    surface: "bg-[#f4f1ea]",
-    ink: "text-[#151515]",
-    accent: "bg-[#149c48]",
-    glow: "story-glow-green",
+    slug: "health",
+    title: "Health",
+    message: "Health is the next major moment.",
+    detail: "Medical benefits, medicines and health services sit behind this function.",
+    motif: "HEALTH",
     tone: "green",
   },
   {
-    surface: "bg-[#f4f1ea]",
-    ink: "text-[#151515]",
-    accent: "bg-[#2e55ff]",
-    glow: "story-glow-blue",
+    slug: "education",
+    title: "Education",
+    message: "Learning gets a clear share.",
+    detail: "This top-level function covers Australian Government education expenses.",
+    motif: "LEARN",
     tone: "blue",
   },
   {
-    surface: "bg-[#29282e]",
-    ink: "text-[#fbfaf5]",
-    accent: "bg-[#149c48]",
-    glow: "story-glow-green",
+    slug: "defence",
+    title: "Defence",
+    message: "National capability is part of the mix.",
+    detail: "Shown as an additive top-level Budget function, not a separate program trace.",
+    motif: "DEF",
+    tone: "red",
+  },
+  {
+    slug: "fuel-energy",
+    title: "Energy & resources",
+    message: "Energy is smaller, but visible.",
+    detail: "Based on the sourced Fuel and energy top-level Budget function.",
+    motif: "ENERGY",
     tone: "green",
   },
 ] as const satisfies ReadonlyArray<{
-  surface: string;
-  ink: string;
-  accent: string;
-  glow: string;
+  slug: BudgetFunctionSlug;
+  title: string;
+  message: string;
+  detail: string;
+  motif: string;
   tone: AccentTone;
+}>;
+
+const SPOTLIGHT_STORY_META = [
+  {
+    slug: "revenue-assistance-states-territories",
+    title: "States and territories",
+    message: "Some Budget support flows through the federation.",
+    detail: "Revenue assistance is a non-additive spotlight from Budget Paper No. 1.",
+    motif: "STATES",
+    tone: "blue",
+    surface: "paper",
+  },
+  {
+    slug: "commonwealth-debt-management",
+    title: "Debt interest",
+    message: "Debt costs are in the picture too.",
+    detail: "Commonwealth Debt Management is a non-additive spotlight, not a villain or a final-summary category.",
+    motif: "DEBT",
+    tone: "red",
+    surface: "charcoal",
+  },
+] as const satisfies ReadonlyArray<{
+  slug: SpotlightProgramSlug;
+  title: string;
+  message: string;
+  detail: string;
+  motif: string;
+  tone: AccentTone;
+  surface: StorySurface;
 }>;
 
 type StepKind =
@@ -90,12 +165,16 @@ type StepKind =
   | "tax"
   | "allocation"
   | "category"
+  | "spotlight"
   | "summary";
 
 interface StoryStep {
   kind: StepKind;
   eyebrow: string;
   title: string;
+  slug?: BudgetFunctionSlug | SpotlightProgramSlug;
+  tone: AccentTone;
+  surface: StorySurface;
 }
 
 function formatCurrency(amount: number) {
@@ -107,7 +186,7 @@ function formatPercent(share: number) {
 }
 
 function getAccentTone(index: number): AccentTone {
-  const tones: AccentTone[] = ["magenta", "green", "blue"];
+  const tones: AccentTone[] = ["magenta", "green", "blue", "red"];
 
   return tones[index % tones.length];
 }
@@ -163,7 +242,7 @@ function PosterYear() {
 interface StoryBar {
   amount: number;
   label: string;
-  share: number;
+  fillShare: number;
   tone: AccentTone;
 }
 
@@ -182,7 +261,7 @@ function StoryBars({
             <span
               className="poster-bar-fill"
               style={{
-                width: `${Math.max(6, Math.min(100, bar.share * 100))}%`,
+                width: `${Math.max(7, Math.min(100, bar.fillShare * 100))}%`,
               }}
             />
           </div>
@@ -198,6 +277,8 @@ interface StoryFrameProps {
   children: React.ReactNode;
   currentKind: StepKind;
   currentStep: number;
+  surface: StorySurface;
+  tone: AccentTone;
   totalSteps: number;
   canGoBack: boolean;
   canGoNext: boolean;
@@ -205,13 +286,14 @@ interface StoryFrameProps {
   onBack: () => void;
   onNext: () => void;
   onRestart: () => void;
-  colourIndex: number;
 }
 
 function StoryFrame({
   children,
   currentKind,
   currentStep,
+  surface,
+  tone,
   totalSteps,
   canGoBack,
   canGoNext,
@@ -219,14 +301,15 @@ function StoryFrame({
   onBack,
   onNext,
   onRestart,
-  colourIndex,
 }: StoryFrameProps) {
-  const colour = storyColours[colourIndex % storyColours.length];
+  const colour = storyPalette[tone];
+  const surfaceClasses = storySurfaces[surface];
+  const progress = ((currentStep + 1) / totalSteps) * 100;
 
   return (
     <main className="story-shell">
       <section
-        className={`story-card story-card-${currentKind} story-tone-${colour.tone} ${colour.surface} ${colour.ink}`}
+        className={`story-card story-card-${currentKind} story-tone-${tone} ${surfaceClasses.surface} ${surfaceClasses.ink}`}
         data-step={currentKind}
       >
         <WavyLines />
@@ -240,6 +323,9 @@ function StoryFrame({
             {currentStep + 1}/{totalSteps}
           </span>
         </header>
+        <div className="story-progress" aria-hidden="true">
+          <span style={{ width: `${progress}%` }} />
+        </div>
 
         <div key={currentStep} className="story-content">
           {children}
@@ -282,6 +368,42 @@ function StoryFrame({
   );
 }
 
+interface FunctionStory {
+  meta: (typeof FUNCTION_STORY_META)[number];
+  allocation: BudgetFunctionAllocation;
+}
+
+interface SpotlightStory {
+  meta: (typeof SPOTLIGHT_STORY_META)[number];
+  allocation: SpotlightAllocation;
+}
+
+function getFunctionDisplayLabel(slug: BudgetFunctionSlug, label: string) {
+  return (
+    FUNCTION_STORY_META.find((item) => item.slug === slug)?.title ?? label
+  );
+}
+
+function buildFunctionStories(
+  allocations: readonly BudgetFunctionAllocation[],
+): FunctionStory[] {
+  return FUNCTION_STORY_META.flatMap((meta) => {
+    const allocation = allocations.find((item) => item.slug === meta.slug);
+
+    return allocation ? [{ meta, allocation }] : [];
+  });
+}
+
+function buildSpotlightStories(
+  allocations: readonly SpotlightAllocation[],
+): SpotlightStory[] {
+  return SPOTLIGHT_STORY_META.flatMap((meta) => {
+    const allocation = allocations.find((item) => item.slug === meta.slug);
+
+    return allocation ? [{ meta, allocation }] : [];
+  });
+}
+
 export function BudgetWrappedFlow() {
   const [stepIndex, setStepIndex] = useState(0);
   const [incomeInput, setIncomeInput] = useState("");
@@ -305,46 +427,77 @@ export function BudgetWrappedFlow() {
     () => calculateSpotlightAllocation(taxEstimate.totalEstimatedTax),
     [taxEstimate.totalEstimatedTax],
   );
-  const categoryStories = allocationSummary.allocations
+  const topAllocationPreview = allocationSummary.allocations
     .slice()
     .sort((left, right) => right.amountCents - left.amountCents)
-    .slice(0, 3);
-  const spotlightStories = spotlightSummary.allocations.slice(0, 3);
+    .slice(0, 4);
+  const maxPreviewAmountCents = topAllocationPreview[0]?.amountCents ?? 1;
+  const categoryStories = buildFunctionStories(allocationSummary.allocations);
+  const spotlightStories = buildSpotlightStories(spotlightSummary.allocations);
 
   const steps: StoryStep[] = [
     {
       kind: "intro",
       eyebrow: "Commonwealth tax estimate",
       title: "Your Australian Budget Wrapped",
+      tone: "red",
+      surface: "paper",
     },
     {
       kind: "input",
       eyebrow: "Start with taxable income",
       title: "What should we wrap?",
+      tone: "blue",
+      surface: "charcoal",
     },
     {
       kind: "tax",
       eyebrow: "Estimated Commonwealth tax",
       title: "Your tax estimate",
+      tone: "red",
+      surface: "charcoal",
     },
     {
       kind: "allocation",
-      eyebrow: "Big picture",
+      eyebrow: "Budget map",
       title: "Mapped across the Budget",
+      tone: "blue",
+      surface: "paper",
     },
-    ...categoryStories.map((category) => ({
+    ...categoryStories.map(({ meta }) => ({
       kind: "category" as const,
-      eyebrow: "Category story",
-      title: category.label,
+      eyebrow: "Additive Budget function",
+      title: meta.title,
+      slug: meta.slug,
+      tone: meta.tone,
+      surface: "paper" as const,
+    })),
+    ...spotlightStories.map(({ meta }) => ({
+      kind: "spotlight" as const,
+      eyebrow: "Non-additive spotlight",
+      title: meta.title,
+      slug: meta.slug,
+      tone: meta.tone,
+      surface: meta.surface,
     })),
     {
       kind: "summary",
-      eyebrow: "Wrap-up",
+      eyebrow: "Final summary",
       title: "Your illustrative receipt",
+      tone: "green",
+      surface: "charcoal",
     },
   ];
 
   const currentStep = steps[stepIndex];
+  const currentCategoryStory =
+    currentStep.kind === "category"
+      ? categoryStories.find((story) => story.meta.slug === currentStep.slug)
+      : undefined;
+  const currentSpotlightStory =
+    currentStep.kind === "spotlight"
+      ? spotlightStories.find((story) => story.meta.slug === currentStep.slug)
+      : undefined;
   const canGoNext = currentStep.kind !== "input" || hasIncome;
   const isLastStep = stepIndex === steps.length - 1;
 
@@ -381,6 +534,8 @@ export function BudgetWrappedFlow() {
     <StoryFrame
       currentKind={currentStep.kind}
       currentStep={stepIndex}
+      surface={currentStep.surface}
+      tone={currentStep.tone}
       totalSteps={steps.length}
       canGoBack={stepIndex > 0}
       canGoNext={canGoNext && !isLastStep}
@@ -388,7 +543,6 @@ export function BudgetWrappedFlow() {
       onBack={goBack}
       onNext={goNext}
       onRestart={restart}
-      colourIndex={stepIndex}
     >
       {currentStep.kind === "intro" && (
         <section className="story-moment story-moment-center">
@@ -452,80 +606,136 @@ export function BudgetWrappedFlow() {
       )}
 
       {currentStep.kind === "allocation" && (
-        <section className="story-moment">
+        <section className="story-moment story-moment-allocation">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h2 className="story-title">{currentStep.title}</h2>
+          <p className="allocation-hero">
+            <span>{formatCurrency(taxEstimate.totalEstimatedTax)}</span>
+            split proportionally
+          </p>
           <StoryBars
             label="Top allocation preview"
-            bars={categoryStories.map((category, index) => ({
+            bars={topAllocationPreview.map((category, index) => ({
               amount: category.amount,
-              label: category.label,
-              share: category.shareOfAdditiveBudget,
+              label: getFunctionDisplayLabel(category.slug, category.label),
+              fillShare: category.amountCents / maxPreviewAmountCents,
               tone: getAccentTone(index),
             }))}
           />
           <p className="story-caveat">
-            Proportional and illustrative. Taxes are not hypothecated.
+            Illustrative only. Taxes are not hypothecated.
           </p>
         </section>
       )}
 
-      {currentStep.kind === "category" && (
+      {currentStep.kind === "category" && currentCategoryStory && (
         <section className="story-moment story-moment-center">
-          {categoryStories
-            .filter((category) => category.label === currentStep.title)
-            .map((category) => {
-              const categoryIndex = categoryStories.findIndex(
-                (story) => story.slug === category.slug,
-              );
-              const safeCategoryIndex = Math.max(0, categoryIndex);
-              const tone = getAccentTone(safeCategoryIndex);
-
-              return (
-                <div key={category.slug} className={`category-hit tone-${tone}`}>
-                  <MiniPieMark tone={tone} />
-                  <p className="story-eyebrow">{currentStep.eyebrow}</p>
-                  <p className="story-kicker">You contributed</p>
-                  <p className={`story-number story-number-${tone}`}>
-                    {formatCurrency(category.amount)}
-                  </p>
-                  <h2 className="story-category-title">{category.label}</h2>
-                  <p className="story-copy">
-                    About {formatPercent(category.shareOfAdditiveBudget)} of the
-                    additive Budget function mix.
-                  </p>
-                  {spotlightStories[safeCategoryIndex] && (
-                    <p className="story-pill">
-                      Spotlight: {spotlightStories[safeCategoryIndex].label}
+          <div
+            className={`category-hit tone-${currentCategoryStory.meta.tone}`}
+          >
+            <span aria-hidden="true" className="story-watermark">
+              {currentCategoryStory.meta.motif}
+            </span>
+            <MiniPieMark tone={currentCategoryStory.meta.tone} />
+            <p className="story-eyebrow">{currentStep.eyebrow}</p>
+            <p className="story-kicker">{currentCategoryStory.meta.message}</p>
+            <p
+              className={`story-number story-number-${currentCategoryStory.meta.tone}`}
+            >
+              {formatCurrency(currentCategoryStory.allocation.amount)}
+            </p>
+            <h2 className="story-category-title">
+              {currentCategoryStory.meta.title}
+            </h2>
+            <p className="story-copy story-copy-tight">
+              {currentCategoryStory.meta.detail}
+            </p>
+            <p className="story-pill story-pill-soft">
+              Additive function •{" "}
+              {formatPercent(
+                currentCategoryStory.allocation.shareOfAdditiveBudget,
+              )}{" "}
+              of the Budget function mix
+            </p>
+            {spotlightSummary.allocations.some(
+              (spotlight) =>
+                spotlight.parentFunctionSlug ===
+                currentCategoryStory.allocation.slug,
+            ) && (
+              <div className="story-mini-list">
+                <span>Spotlights, not added</span>
+                {spotlightSummary.allocations
+                  .filter(
+                    (spotlight) =>
+                      spotlight.parentFunctionSlug ===
+                      currentCategoryStory.allocation.slug,
+                  )
+                  .slice(0, 2)
+                  .map((spotlight) => (
+                    <p key={spotlight.slug}>
+                      <strong>{formatCurrency(spotlight.amount)}</strong>{" "}
+                      {spotlight.label}
                     </p>
-                  )}
-                </div>
-              );
-            })}
+                  ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {currentStep.kind === "spotlight" && currentSpotlightStory && (
+        <section className="story-moment story-moment-center">
+          <div
+            className={`category-hit spotlight-hit tone-${currentSpotlightStory.meta.tone}`}
+          >
+            <span aria-hidden="true" className="story-watermark">
+              {currentSpotlightStory.meta.motif}
+            </span>
+            <MiniPieMark tone={currentSpotlightStory.meta.tone} />
+            <p className="story-eyebrow">{currentStep.eyebrow}</p>
+            <p className="story-kicker">{currentSpotlightStory.meta.message}</p>
+            <p
+              className={`story-number story-number-${currentSpotlightStory.meta.tone}`}
+            >
+              {formatCurrency(currentSpotlightStory.allocation.amount)}
+            </p>
+            <h2 className="story-category-title">
+              {currentSpotlightStory.meta.title}
+            </h2>
+            <p className="story-copy story-copy-tight">
+              {currentSpotlightStory.meta.detail}
+            </p>
+            <p className="story-pill story-pill-soft">
+              Non-additive • not included in the final summary total
+            </p>
+          </div>
         </section>
       )}
 
       {currentStep.kind === "summary" && (
-        <section className="story-moment">
+        <section className="story-moment story-moment-summary">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h2 className="story-title">{currentStep.title}</h2>
+          <p className="summary-total">
+            {formatCurrency(taxEstimate.totalEstimatedTax)}
+          </p>
           <div className="summary-shell">
             <div>
-              <span>Tax estimate</span>
-              <strong>{formatCurrency(taxEstimate.totalEstimatedTax)}</strong>
+              <span>Additive map</span>
+              <strong>Sums to your estimate</strong>
             </div>
             <div>
-              <span>Top category</span>
-              <strong>{categoryStories[0]?.label}</strong>
+              <span>Largest slice</span>
+              <strong>{FUNCTION_STORY_META[0].title}</strong>
             </div>
             <div>
-              <span>Model</span>
-              <strong>Illustrative only</strong>
+              <span>Spotlights</span>
+              <strong>Shown separately</strong>
             </div>
           </div>
           <p className="story-caveat">
-            Estimate only. This is not a record of actual spending; taxes are
-            not hypothecated.
+            Estimate only. This is a proportional Budget map, not a record of
+            actual spending.
           </p>
         </section>
       )}

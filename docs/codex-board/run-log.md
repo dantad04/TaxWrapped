@@ -152,3 +152,36 @@ Result:
 
 - Ticket 005 implemented for human review.
 - Ticket 006 was not started.
+
+## Ticket 006: Story Card Polish
+
+Status: Human Review
+
+Scope:
+
+- Re-inspected the four visual reference images and the Ticket 005 design-review screenshots before implementation.
+- Expanded the post-tax story sequence using existing sourced Budget model data only.
+- Added additive function story cards for social security and welfare, health, education, defence, and fuel and energy.
+- Added non-additive spotlight story cards for revenue assistance to States and Territories and Commonwealth Debt Management.
+- Improved the big-picture allocation card, story progress treatment, category card copy hierarchy, lightweight caveats, and final summary ending.
+- Kept tax, Budget, allocation, source data, storage, and analytics behaviour unchanged.
+- Generated Ticket 006 screenshots at 390px and 430px for intro, input, tax result, big picture, five function cards, two spotlight cards, and final summary.
+- Updated Playwright coverage for the expanded story path and non-additive spotlight language.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- `npm run typecheck` - passed during iteration
+- `npm run lint` - passed during iteration
+- `npm run test:run` - passed during iteration
+- `npm run test:e2e` - failed once during iteration on a strict locator, then passed after tightening the assertion
+- `npm run build` - passed for production screenshot capture
+- Playwright screenshot capture at 390px and 430px widths - passed after visual inspection
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 006 implemented for human review.
+- Ticket 007 was not started.
