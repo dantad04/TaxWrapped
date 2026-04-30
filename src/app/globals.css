@@ -130,6 +130,22 @@ button {
   opacity: 0.72;
 }
 
+.story-topbar span {
+  min-width: 0;
+  white-space: nowrap;
+  word-break: normal;
+  hyphens: none;
+}
+
+.story-topbar span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.story-topbar span:last-child {
+  flex: 0 0 auto;
+}
+
 .story-progress {
   position: relative;
   z-index: 2;
@@ -186,12 +202,15 @@ button {
 
 .story-title {
   max-width: 100%;
-  font-size: clamp(2.45rem, 10.8vw, 5.9rem);
+  font-size: clamp(2.24rem, 9.8vw, 5.9rem);
   line-height: 0.86;
   font-weight: 1000;
   letter-spacing: 0;
   text-transform: uppercase;
   text-wrap: balance;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .story-copy {
@@ -221,6 +240,9 @@ button {
   font-weight: 1000;
   text-transform: none;
   text-wrap: balance;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .story-number {
@@ -231,7 +253,10 @@ button {
   font-weight: 1000;
   letter-spacing: 0;
   text-transform: uppercase;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  white-space: nowrap;
   -webkit-text-stroke: clamp(1px, 0.45vw, 3px) var(--story-shadow);
   paint-order: stroke fill;
   text-shadow: 0.045em 0.045em 0 var(--story-shadow);
@@ -406,7 +431,7 @@ button {
 }
 
 .story-card-intro .story-title {
-  font-size: clamp(2.45rem, 10vw, 4.6rem);
+  font-size: clamp(2.18rem, 9.15vw, 4.6rem);
 }
 
 .story-card-tax,
@@ -428,6 +453,10 @@ button {
   font-size: clamp(4.35rem, 14.8vw, 6.15rem);
   overflow-wrap: normal;
   white-space: nowrap;
+}
+
+.story-card-tax .story-title {
+  font-size: clamp(2.2rem, 9.35vw, 5.3rem);
 }
 
 .story-card-tax .story-eyebrow,
@@ -461,18 +490,21 @@ button {
 
 .story-poster-year {
   position: absolute;
-  left: -1.25rem;
+  left: 50%;
   bottom: clamp(1.15rem, 3.6svh, 2.3rem);
   z-index: -1;
   color: var(--story-red);
   width: max-content;
-  font-size: clamp(6.7rem, 29vw, 12.4rem);
+  max-width: calc(100% - 1rem);
+  font-size: clamp(5.55rem, 29vw, 12.4rem);
   line-height: 0.78;
   font-style: italic;
   font-weight: 1000;
   letter-spacing: 0;
   white-space: nowrap;
-  transform: rotate(-2deg);
+  word-break: normal;
+  hyphens: none;
+  transform: translateX(-50%) rotate(-2deg);
   -webkit-text-stroke: clamp(2px, 0.75vw, 4px) var(--story-ink);
   text-shadow: none;
 }
@@ -482,7 +514,7 @@ button {
 }
 
 .story-card-summary .story-title {
-  font-size: clamp(2.2rem, 8.8vw, 4.6rem);
+  font-size: clamp(2rem, 8.2vw, 4.6rem);
 }
 
 .story-card-summary .story-lines {
@@ -496,7 +528,7 @@ button {
 
 .story-card-category .story-number,
 .story-card-spotlight .story-number {
-  font-size: clamp(3.65rem, 16.8vw, 7rem);
+  font-size: clamp(3.55rem, 15.7vw, 7rem);
 }
 
 .story-card-category .story-kicker,
@@ -602,6 +634,7 @@ button {
 
 .story-moment-allocation .story-title {
   max-width: 23rem;
+  font-size: clamp(2.22rem, 9.55vw, 5.2rem);
 }
 
 .allocation-hero {
@@ -612,12 +645,16 @@ button {
   line-height: 1;
   font-weight: 950;
   text-transform: uppercase;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .allocation-hero span {
   color: var(--story-blue);
-  font-size: clamp(2.2rem, 9.2vw, 3.9rem);
+  font-size: clamp(2.08rem, 8.8vw, 3.9rem);
   line-height: 0.86;
+  white-space: nowrap;
   -webkit-text-stroke: 1px var(--story-ink);
   text-shadow: 0.04em 0.04em 0 var(--story-ink);
 }
@@ -652,11 +689,14 @@ button {
 
 .story-category-title {
   max-width: 22rem;
-  font-size: clamp(1.65rem, 6.4vw, 2.8rem);
+  font-size: clamp(1.58rem, 6vw, 2.8rem);
   line-height: 0.92;
   font-weight: 1000;
   text-transform: none;
   text-wrap: balance;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .story-copy-tight {
@@ -957,9 +997,12 @@ button {
 
 .summary-total {
   color: var(--story-green);
-  font-size: clamp(4.1rem, 17vw, 7.5rem);
+  font-size: clamp(3.9rem, 15.8vw, 7.5rem);
   line-height: 0.76;
   font-weight: 1000;
+  white-space: nowrap;
+  word-break: normal;
+  hyphens: none;
   -webkit-text-stroke: clamp(1px, 0.45vw, 3px) #fbfaf5;
   text-shadow: 0.045em 0.045em 0 #080808;
 }
@@ -1343,10 +1386,13 @@ button {
 }
 
 .share-preview-hero h1 {
-  font-size: clamp(2.6rem, 12vw, 6.4rem);
+  font-size: clamp(2.25rem, 10.4vw, 6.4rem);
   line-height: 0.84;
   font-weight: 1000;
   text-transform: uppercase;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .share-preview-hero span {

@@ -313,3 +313,31 @@ Result:
 
 - Ticket 010 implemented for human review.
 - No ticket 011 was created.
+
+## Typography Clipping Hotfix
+
+Status: Human Review
+
+Scope:
+
+- Fixed mobile hero copy clipping at 390px and 430px by tightening width-aware `clamp()` ranges for story titles, tax/allocation/category/summary numeric hero text, and the share-preview hero heading.
+- Preserved normal word boundaries by disabling mid-word breaking and hyphenation on hero typography.
+- Centered and width-scaled the intro `25-26` poster numerals so the full text remains inside the card at 390px and 430px.
+- Added topbar counter shrink protection so the internal page counter remains visible.
+- Generated typography hotfix screenshots at 390px and 430px for intro, income input, tax result, big-picture allocation, one category card, final summary, and share preview.
+- Kept tax, Budget, allocation, source data, copy, storage, analytics, route structure, and decorative poster shapes unchanged.
+
+Commands run:
+
+- `git status --short` - clean before editing after parking unrelated pre-existing work
+- Playwright DOM overflow audit at 390px and 430px - passed after typography changes
+- `npm run build` - passed for production screenshot capture
+- Playwright production screenshot capture at 390px and 430px - passed
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Typography clipping hotfix implemented for human review.
+- No new ticket was started.
