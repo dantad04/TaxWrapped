@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  AllocationStackedChart,
+  CategoryShareChart,
+  SpotlightMarkerChart,
+  SummaryRankedBarChart,
+} from "@/components/budget-charts";
+import {
   allocateTaxAcrossBudgetFunctions,
   calculateSpotlightAllocation,
 } from "@/lib/allocation/budget-allocation";
@@ -13,6 +19,7 @@ import type {
   BudgetFunctionSlug,
   SpotlightProgramSlug,
 } from "@/lib/budget/model";
+import type { ChartTone } from "@/lib/charts/budget-chart-data";
 import { estimateAustralianTax2025_26 } from "@/lib/tax/australian-resident-2025-26";
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
@@ -25,7 +32,7 @@ const percentFormatter = new Intl.NumberFormat("en-AU", {
   maximumFractionDigits: 1,
 });
 
-type AccentTone = "blue" | "green" | "magenta" | "red";
+type AccentTone = ChartTone;
 type StorySurface = "charcoal" | "paper";
 
 const storyPalette = {
@@ -185,12 +192,6 @@ function formatPercent(share: number) {
   return `${percentFormatter.format(share * 100)}%`;
 }
 
-function getAccentTone(index: number): AccentTone {
-  const tones: AccentTone[] = ["magenta", "green", "blue", "red"];
-
-  return tones[index % tones.length];
-}
-
 function parseIncome(value: string) {
   if (value.trim() === "") {
     return null;
@@ -231,46 +232,18 @@ function PatternBlock() {
   );
 }
 
-function MiniPieMark({ tone }: { tone: AccentTone }) {
-  return <div aria-hidden="true" className={`mini-pie mini-pie-${tone}`} />;
+function TaxEstimateMark() {
+  return (
+    <div aria-hidden="true" className="tax-poster-mark">
+      <span />
+      <span />
+      <span />
+    </div>
+  );
 }
 
 function PosterYear() {
   return <div aria-hidden="true" className="story-poster-year">25-26</div>;
-}
-
-interface StoryBar {
-  amount: number;
-  label: string;
-  fillShare: number;
-  tone: AccentTone;
-}
-
-function StoryBars({
-  bars,
-  label,
-}: {
-  bars: StoryBar[];
-  label: string;
-}) {
-  return (
-    <div className="poster-bars" aria-label={label}>
-      {bars.map((bar) => (
-        <div key={bar.label} className={`poster-bar poster-bar-${bar.tone}`}>
-          <div className="poster-bar-fill-wrap">
-            <span
-              className="poster-bar-fill"
-              style={{
-                width: `${Math.max(7, Math.min(100, bar.fillShare * 100))}%`,
-              }}
-            />
-          </div>
-          <strong>{formatCurrency(bar.amount)}</strong>
-          <span>{bar.label}</span>
-        </div>
-      ))}
-    </div>
-  );
 }
 
 interface StoryFrameProps {
@@ -378,12 +351,6 @@ interface SpotlightStory {
   allocation: SpotlightAllocation;
 }
 
-function getFunctionDisplayLabel(slug: BudgetFunctionSlug, label: string) {
-  return (
-    FUNCTION_STORY_META.find((item) => item.slug === slug)?.title ?? label
-  );
-}
-
 function buildFunctionStories(
   allocations: readonly BudgetFunctionAllocation[],
 ): FunctionStory[] {
@@ -427,11 +394,6 @@ export function BudgetWrappedFlow() {
     () => calculateSpotlightAllocation(taxEstimate.totalEstimatedTax),
     [taxEstimate.totalEstimatedTax],
   );
-  const topAllocationPreview = allocationSummary.allocations
-    .slice()
-    .sort((left, right) => right.amountCents - left.amountCents)
-    .slice(0, 4);
-  const maxPreviewAmountCents = topAllocationPreview[0]?.amountCents ?? 1;
   const categoryStories = buildFunctionStories(allocationSummary.allocations);
   const spotlightStories = buildSpotlightStories(spotlightSummary.allocations);
 
@@ -592,7 +554,7 @@ export function BudgetWrappedFlow() {
 
       {currentStep.kind === "tax" && (
         <section className="story-moment story-moment-center">
-          <MiniPieMark tone="red" />
+          <TaxEstimateMark />
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h2 className="story-title">{currentStep.title}</h2>
           <p className="story-number story-number-red">
@@ -613,15 +575,7 @@ export function BudgetWrappedFlow() {
             <span>{formatCurrency(taxEstimate.totalEstimatedTax)}</span>
             split proportionally
           </p>
-          <StoryBars
-            label="Top allocation preview"
-            bars={topAllocationPreview.map((category, index) => ({
-              amount: category.amount,
-              label: getFunctionDisplayLabel(category.slug, category.label),
-              fillShare: category.amountCents / maxPreviewAmountCents,
-              tone: getAccentTone(index),
-            }))}
-          />
+          <AllocationStackedChart summary={allocationSummary} />
           <p className="story-caveat">
             Illustrative only. Taxes are not hypothecated.
           </p>
@@ -636,7 +590,11 @@ export function BudgetWrappedFlow() {
             <span aria-hidden="true" className="story-watermark">
               {currentCategoryStory.meta.motif}
             </span>
-            <MiniPieMark tone={currentCategoryStory.meta.tone} />
+            <CategoryShareChart
+              allocation={currentCategoryStory.allocation}
+              title={currentCategoryStory.meta.title}
+              tone={currentCategoryStory.meta.tone}
+            />
             <p className="story-eyebrow">{currentStep.eyebrow}</p>
             <p className="story-kicker">{currentCategoryStory.meta.message}</p>
             <p
@@ -691,7 +649,11 @@ export function BudgetWrappedFlow() {
             <span aria-hidden="true" className="story-watermark">
               {currentSpotlightStory.meta.motif}
             </span>
-            <MiniPieMark tone={currentSpotlightStory.meta.tone} />
+            <SpotlightMarkerChart
+              allocation={currentSpotlightStory.allocation}
+              title={currentSpotlightStory.meta.title}
+              tone={currentSpotlightStory.meta.tone}
+            />
             <p className="story-eyebrow">{currentStep.eyebrow}</p>
             <p className="story-kicker">{currentSpotlightStory.meta.message}</p>
             <p
@@ -719,20 +681,7 @@ export function BudgetWrappedFlow() {
           <p className="summary-total">
             {formatCurrency(taxEstimate.totalEstimatedTax)}
           </p>
-          <div className="summary-shell">
-            <div>
-              <span>Additive map</span>
-              <strong>Sums to your estimate</strong>
-            </div>
-            <div>
-              <span>Largest slice</span>
-              <strong>{FUNCTION_STORY_META[0].title}</strong>
-            </div>
-            <div>
-              <span>Spotlights</span>
-              <strong>Shown separately</strong>
-            </div>
-          </div>
+          <SummaryRankedBarChart summary={allocationSummary} />
           <p className="story-caveat">
             Estimate only. This is a proportional Budget map, not a record of
             actual spending.

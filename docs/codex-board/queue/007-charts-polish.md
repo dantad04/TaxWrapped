@@ -1,6 +1,6 @@
 # Ticket 007: Charts Polish
 
-Status: Ready
+Status: Human Review
 
 ## Goal
 

@@ -60,17 +60,30 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("heading", { name: "Mapped across the Budget" }),
     ).toBeVisible();
-    await expect(page.getByText("Social security & welfare")).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: /Big-picture allocation chart/ }),
+    ).toBeVisible();
+    await expect(
+      page.locator(".allocation-chart-key").getByText(/Social security\s+and welfare/),
+    ).toBeVisible();
     await expect(page.getByText(/Taxes are not hypothecated/)).toBeVisible();
 
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "Social security & welfare" }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("img", {
+        name: /Social security & welfare share chart/,
+      }),
+    ).toBeVisible();
     await expect(page.getByText(/Additive function/)).toBeVisible();
 
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Health" })).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: /Health share chart/ }),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(
@@ -90,6 +103,11 @@ test.describe("mobile story flow", () => {
       page.getByRole("heading", { name: "States and territories" }),
     ).toBeVisible();
     await expect(
+      page.getByRole("img", {
+        name: /States and territories non-additive spotlight chart/,
+      }),
+    ).toBeVisible();
+    await expect(
       page.getByText("Non-additive spotlight", { exact: true }),
     ).toBeVisible();
 
@@ -104,6 +122,9 @@ test.describe("mobile story flow", () => {
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "Your illustrative receipt" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: /Final summary bar chart/ }),
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Restart" }).click();

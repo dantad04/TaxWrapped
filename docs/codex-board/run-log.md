@@ -185,3 +185,36 @@ Result:
 
 - Ticket 006 implemented for human review.
 - Ticket 007 was not started.
+
+## Ticket 007: Charts Polish
+
+Status: Human Review
+
+Scope:
+
+- Replaced presentational preview bars with accessible chart components for the wrapped flow.
+- Added a stacked allocation strip for the big-picture Budget allocation card using additive top-level functions only.
+- Added category share meters to additive function story cards.
+- Added a distinct non-additive spotlight marker treatment for States and Territories and debt interest spotlight cards.
+- Added a final ranked horizontal bar chart that reconciles to the estimated tax total and excludes spotlight programs.
+- Added chart data helpers and focused tests for additive-only chart rows, spotlight exclusion, reconciled totals, and zero/low-tax inputs.
+- Generated Ticket 007 screenshots at 390px and 430px for intro, input, tax result, big-picture chart, three category chart cards, one spotlight chart, and final summary chart.
+- Kept tax, Budget, allocation, source data, storage, and analytics behaviour unchanged.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- `command -v npx >/dev/null 2>&1; echo $?` - returned `0`
+- `npm run typecheck` - passed during iteration
+- `npm run lint` - passed during iteration
+- `npm run test:run` - passed during iteration
+- `npm run build` - passed for production screenshot capture
+- Playwright screenshot capture at 390px and 430px widths - passed after correcting the capture step count
+- `npm run validate` - passed
+- `npm run test:e2e` - failed once on an outdated chart-key text assertion, then passed after updating the assertion
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 007 implemented for human review.
+- Ticket 008 was not started.
