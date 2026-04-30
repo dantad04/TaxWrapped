@@ -32,6 +32,8 @@ import type {
 import type { ChartTone } from "@/lib/charts/budget-chart-data";
 import { useCountUp } from "@/hooks/use-count-up";
 import { estimateAustralianTax2025_26 } from "@/lib/tax/australian-resident-2025-26";
+import type { BracketWalkRow } from "@/lib/tax/bracket-walk";
+import { buildBracketWalk } from "@/lib/tax/bracket-walk";
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
   style: "currency",
@@ -181,6 +183,7 @@ type StepKind =
   | "intro"
   | "input"
   | "tax"
+  | "bracket-walk"
   | "allocation"
   | "category"
   | "spotlight"
@@ -286,6 +289,58 @@ function TaxEstimateMark() {
 
 function PosterYear() {
   return <div aria-hidden="true" className="story-poster-year">25-26</div>;
+}
+
+function TaxBracketWalkCard({
+  rows,
+  totalAmount,
+  title,
+}: {
+  rows: readonly BracketWalkRow[];
+  totalAmount: number;
+  title: string;
+}) {
+  return (
+    <section className="story-moment bracket-walk-card">
+      <p className="story-eyebrow">How your tax was built</p>
+      <h2 className="story-title">{title}</h2>
+      <div className="bracket-walk-list" aria-label="Tax bracket breakdown">
+        {rows.map((row) => (
+          <div
+            key={row.id}
+            className={`bracket-walk-row bracket-walk-row-${row.kind}`}
+          >
+            <div className="bracket-walk-main">
+              <strong>{row.label}</strong>
+              {row.rateLabel && (
+                <span className="bracket-walk-rate">{row.rateLabel}</span>
+              )}
+            </div>
+            <div className="bracket-walk-detail">
+              {row.taxableAmount === null ? (
+                <span>{row.kind === "offset" ? "Offset applied" : "Added to estimate"}</span>
+              ) : (
+                <span>{formatCurrency(row.taxableAmount)} taxed</span>
+              )}
+              <strong className="bracket-walk-amount">
+                {formatCurrency(row.amount)}
+              </strong>
+            </div>
+          </div>
+        ))}
+        <div className="bracket-walk-row bracket-walk-total">
+          <div className="bracket-walk-main">
+            <strong>Total estimate</strong>
+          </div>
+          <AnimatedCurrency
+            amount={totalAmount}
+            as="strong"
+            className="bracket-walk-total-amount"
+          />
+        </div>
+      </div>
+    </section>
+  );
 }
 
 const drilldownColours = [
@@ -634,6 +689,13 @@ export function BudgetWrappedFlow() {
     () => allocateTaxAcrossBudgetFunctions(taxEstimate.totalEstimatedTax),
     [taxEstimate.totalEstimatedTax],
   );
+  const bracketWalkRows = useMemo(
+    () =>
+      buildBracketWalk(taxableIncome ?? 0, {
+        includeMedicareLevy: true,
+      }),
+    [taxableIncome],
+  );
   const spotlightSummary = useMemo(
     () => calculateSpotlightAllocation(taxEstimate.totalEstimatedTax),
     [taxEstimate.totalEstimatedTax],
@@ -671,6 +733,13 @@ export function BudgetWrappedFlow() {
       eyebrow: "Estimated Commonwealth tax",
       title: "Your tax estimate",
       tone: "red",
+      surface: "charcoal",
+    },
+    {
+      kind: "bracket-walk",
+      eyebrow: "How your tax was built",
+      title: "Bracket by bracket.",
+      tone: "green",
       surface: "charcoal",
     },
     {
@@ -866,6 +935,14 @@ export function BudgetWrappedFlow() {
             ]}
           />
         </section>
+      )}
+
+      {!activeDrilldownView && currentStep.kind === "bracket-walk" && (
+        <TaxBracketWalkCard
+          rows={bracketWalkRows}
+          totalAmount={taxEstimate.totalEstimatedTax}
+          title={currentStep.title}
+        />
       )}
 
       {!activeDrilldownView && currentStep.kind === "allocation" && (

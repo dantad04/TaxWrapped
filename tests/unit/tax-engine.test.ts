@@ -6,7 +6,12 @@ import {
   estimateAustralianTax2025_26,
   SIMPLIFIED_MEDICARE_LEVY_CAVEAT,
 } from "@/lib/tax/australian-resident-2025-26";
+import { buildBracketWalk } from "@/lib/tax/bracket-walk";
 import { describe, expect, it } from "vitest";
+
+function roundMoney(amount: number): number {
+  return Math.round((amount + Number.EPSILON) * 100) / 100;
+}
 
 describe("Australian resident tax engine 2025-26", () => {
   it("calculates every resident tax bracket boundary", () => {
@@ -167,5 +172,58 @@ describe("Australian resident tax engine 2025-26", () => {
       "ato-low-income-tax-offset",
       "ato-medicare-levy",
     ]);
+  });
+});
+
+describe("tax bracket walk", () => {
+  it.each([45000, 90000, 200000, 0, 18000])(
+    "sums to the engine total for taxable income %s",
+    (taxableIncome) => {
+      const rows = buildBracketWalk(taxableIncome, {
+        includeMedicareLevy: true,
+      });
+      const estimate = estimateAustralianTax2025_26({
+        taxableIncome,
+        includeMedicareLevy: true,
+      });
+      const rowTotal = roundMoney(
+        rows.reduce((total, row) => total + row.amount, 0),
+      );
+
+      expect(rowTotal).toBe(estimate.totalEstimatedTax);
+    },
+  );
+
+  it("caps the LITO row so the income tax subtotal never goes negative", () => {
+    const rows = buildBracketWalk(20000, { includeMedicareLevy: false });
+    const incomeTaxSubtotal = roundMoney(
+      rows.reduce((total, row) => total + row.amount, 0),
+    );
+
+    expect(rows.find((row) => row.id === "lito")?.amount).toBe(-288);
+    expect(incomeTaxSubtotal).toBe(0);
+  });
+
+  it("only includes the Medicare levy row when it is enabled", () => {
+    expect(
+      buildBracketWalk(90000, { includeMedicareLevy: true }).some(
+        (row) => row.id === "medicare-levy",
+      ),
+    ).toBe(true);
+    expect(
+      buildBracketWalk(90000, { includeMedicareLevy: false }).some(
+        (row) => row.id === "medicare-levy",
+      ),
+    ).toBe(false);
+  });
+
+  it("emits bracket rows in ascending order", () => {
+    const lowerBounds = buildBracketWalk(200000, {
+      includeMedicareLevy: true,
+    })
+      .filter((row) => row.kind === "bracket")
+      .map((row) => row.lowerBoundInclusive ?? 0);
+
+    expect(lowerBounds).toEqual([...lowerBounds].sort((a, b) => a - b));
   });
 });

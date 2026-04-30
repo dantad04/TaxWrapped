@@ -450,6 +450,7 @@ button {
 }
 
 .story-card-tax,
+.story-card-bracket-walk,
 .story-card-spotlight,
 .story-card-summary,
 .story-card-input {
@@ -457,6 +458,7 @@ button {
 }
 
 .story-card-tax .story-number,
+.story-card-bracket-walk .story-number,
 .story-card-spotlight .story-number,
 .story-card-summary .story-number,
 .story-card-input .story-number {
@@ -475,6 +477,7 @@ button {
 }
 
 .story-card-tax .story-eyebrow,
+.story-card-bracket-walk .story-eyebrow,
 .story-card-spotlight .story-eyebrow,
 .story-card-summary .story-eyebrow,
 .story-card-input .story-eyebrow {
@@ -482,6 +485,7 @@ button {
 }
 
 .story-card-tax .story-caveat,
+.story-card-bracket-walk .story-caveat,
 .story-card-spotlight .story-caveat,
 .story-card-summary .story-caveat,
 .story-card-input .story-caveat {
@@ -496,6 +500,7 @@ button {
 }
 
 .story-card-tax .story-icon-button,
+.story-card-bracket-walk .story-icon-button,
 .story-card-spotlight .story-icon-button,
 .story-card-summary .story-icon-button,
 .story-card-input .story-icon-button {
@@ -531,6 +536,99 @@ button {
 
 .story-card-summary .story-title {
   font-size: clamp(2rem, 8.2vw, 4.6rem);
+}
+
+.story-card-bracket-walk .story-content {
+  padding-block: clamp(0.78rem, 2.6svh, 1.75rem);
+}
+
+.story-card-bracket-walk .story-title {
+  font-size: clamp(2.16rem, 9.3vw, 5rem);
+}
+
+.bracket-walk-card {
+  align-content: center;
+  gap: clamp(0.72rem, 2.3svh, 1.1rem);
+}
+
+.bracket-walk-list {
+  display: grid;
+  gap: clamp(0.42rem, 1.35svh, 0.62rem);
+}
+
+.bracket-walk-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  border-bottom: 2px solid rgba(251, 250, 245, 0.18);
+  padding-bottom: clamp(0.36rem, 1.1svh, 0.5rem);
+}
+
+.bracket-walk-row strong {
+  font-weight: 950;
+}
+
+.bracket-walk-main {
+  display: grid;
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.bracket-walk-main strong {
+  font-size: clamp(0.9rem, 3.55vw, 1.15rem);
+  line-height: 1;
+}
+
+.bracket-walk-rate {
+  color: var(--story-accent);
+  font-size: clamp(1.25rem, 5vw, 1.9rem);
+  line-height: 0.9;
+  font-weight: 1000;
+}
+
+.bracket-walk-detail {
+  display: grid;
+  justify-items: end;
+  gap: 0.16rem;
+  text-align: right;
+}
+
+.bracket-walk-detail span {
+  color: rgba(251, 250, 245, 0.72);
+  font-size: clamp(0.66rem, 2.55vw, 0.78rem);
+  line-height: 1.04;
+  font-weight: 800;
+}
+
+.bracket-walk-amount {
+  color: var(--story-accent);
+  font-size: clamp(1.1rem, 4.45vw, 1.72rem);
+  line-height: 0.92;
+  white-space: nowrap;
+}
+
+.bracket-walk-total {
+  margin-top: clamp(0.2rem, 0.8svh, 0.42rem);
+  border-bottom: 0;
+  border-top: 3px solid rgba(251, 250, 245, 0.72);
+  padding-top: clamp(0.5rem, 1.45svh, 0.72rem);
+  padding-bottom: 0;
+}
+
+.bracket-walk-total .bracket-walk-main strong {
+  font-size: clamp(1rem, 4vw, 1.3rem);
+  text-transform: uppercase;
+}
+
+.bracket-walk-total-amount {
+  color: var(--story-accent);
+  font-size: clamp(2.05rem, 8.8vw, 3.35rem);
+  line-height: 0.84;
+  font-weight: 1000;
+  white-space: nowrap;
+  -webkit-text-stroke: 1px #fbfaf5;
+  text-shadow: 0.045em 0.045em 0 #080808;
 }
 
 .story-card-summary .story-lines {

@@ -374,3 +374,34 @@ Result:
 
 - Ticket 011 implemented for human review.
 - No new ticket was started.
+
+## Ticket 012: Tax Bracket Walk Card
+
+Status: Human Review
+
+Scope:
+
+- Added a pure `buildBracketWalk` helper that derives bracket rows, LITO, and optional Medicare levy from the existing 2025-26 resident tax engine and exported bracket data.
+- Inserted one charcoal "How your tax was built" card between the tax estimate and big-picture allocation screens.
+- Rendered bracket range, marginal rate, dollars taxed, and tax owed per bracket, with a final animated total using the Ticket 011 count-up pattern.
+- Updated story progress and navigation through the existing step array so back, next, restart, and later drilldown behavior remain consistent.
+- Added focused unit coverage for bracket reconciliation, LITO capping, Medicare row toggling, and ascending bracket order.
+- Added Playwright coverage for tax estimate, bracket walk, allocation continuity, total matching, and banned phrase absence on the bracket card.
+- Created the missing Ticket 012 queue file and marked it for human review.
+- Kept tax, Budget, allocation, source data, analytics, storage, and political copy scope unchanged.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- `npm run typecheck` - failed once on helper row inference, then passed after explicit row typing
+- `npm run test:run -- tests/unit/tax-engine.test.ts` - passed
+- `npm run lint` - passed
+- `npm run test:e2e` - timed out once waiting for the configured dev server, then passed on rerun
+- `npm run validate` - failed once after the new step moved the drilldown unit test one screen early, then passed after updating that test path
+- `npm run test:e2e` - passed after the validation fix
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 012 implemented for human review.
+- No later ticket was started.

@@ -48,7 +48,13 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("heading", { name: "Your tax estimate" }),
     ).toBeVisible();
-    await expect(page.getByText("$19,588")).toBeVisible();
+    const taxEstimateTotal = page.locator(".story-card-tax .story-number");
+    await expect(taxEstimateTotal).toContainText("$19,588");
+    const displayedTaxTotal = (await taxEstimateTotal.textContent())?.trim();
+    if (!displayedTaxTotal) {
+      throw new Error("Tax estimate total did not render.");
+    }
+    expect(displayedTaxTotal).toBe("$19,588");
 
     await page.getByRole("button", { name: "Back" }).click();
     await expect(
@@ -57,6 +63,18 @@ test.describe("mobile story flow", () => {
     await expect(page.getByLabel("Taxable income")).toHaveValue("90000");
 
     await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Bracket by bracket." }),
+    ).toBeVisible();
+    const bracketWalkCard = page.locator(".story-card-bracket-walk");
+    await expect(bracketWalkCard).toContainText("How your tax was built");
+    await expect(bracketWalkCard).toContainText("Total estimate");
+    await expect(bracketWalkCard).toContainText(displayedTaxTotal);
+    await expect(bracketWalkCard).not.toContainText(
+      /exactly where your tax dollars went|fair|unfair/i,
+    );
+
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "Mapped across the Budget" }),
