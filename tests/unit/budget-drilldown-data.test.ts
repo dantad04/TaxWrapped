@@ -1,7 +1,10 @@
 import { auBudget2025_26 } from "@/data/auBudget2025_26";
+import { budget2025_26 } from "@/data/budget-2025-26";
 import { sourceRegistry } from "@/data/sources";
+import { allocateTaxAcrossBudgetFunctions } from "@/lib/allocation/budget-allocation";
 import {
   calculateBudgetDrilldownView,
+  calculateBudgetProgramCallouts,
   calculateTopLevelContributionCents,
   getBudgetDrilldownCategory,
   getBudgetNodeChildrenTotalM,
@@ -24,6 +27,25 @@ function sumRowsCents(
   rows: readonly { amountCents: number }[],
 ): number {
   return rows.reduce((total, row) => total + row.amountCents, 0);
+}
+
+function findNodeById(
+  nodes: readonly BudgetDrilldownNode[],
+  id: string,
+): BudgetDrilldownNode | null {
+  for (const node of nodes) {
+    if (node.id === id) {
+      return node;
+    }
+
+    const childMatch = findNodeById(node.children ?? [], id);
+
+    if (childMatch) {
+      return childMatch;
+    }
+  }
+
+  return null;
 }
 
 describe("2025-26 Budget drilldown data", () => {
@@ -133,5 +155,103 @@ describe("2025-26 Budget drilldown data", () => {
     expect(() =>
       calculateBudgetDrilldownView(-1, ["social-security-welfare"]),
     ).toThrow(RangeError);
+  });
+
+  it("connects every program callout source to the source registry", () => {
+    const sourceIds = new Set(Object.keys(sourceRegistry));
+
+    for (const category of auBudget2025_26.categories) {
+      for (const callout of category.callouts ?? []) {
+        expect(sourceIds.has(callout.sourceId)).toBe(true);
+        expect(callout.sourceLocator).toBeTruthy();
+      }
+    }
+  });
+
+  it("keeps program callout amounts tied to existing drilldown rows", () => {
+    for (const category of auBudget2025_26.categories) {
+      for (const callout of category.callouts ?? []) {
+        const sourceRow = findNodeById(category.children ?? [], callout.id);
+
+        expect(sourceRow).not.toBeNull();
+        expect(callout.amountM).toBe(sourceRow?.amountM);
+        expect(callout.sourceId).toBe(sourceRow?.sourceId);
+        expect(callout.sourceLocator).toBe(sourceRow?.sourceLocator);
+      }
+    }
+  });
+
+  it("keeps per-card callout contributions within the parent category contribution", () => {
+    const summary = allocateTaxAcrossBudgetFunctions(19_588);
+
+    for (const category of auBudget2025_26.categories) {
+      if (!category.callouts?.length) {
+        continue;
+      }
+
+      const parentAllocation = summary.allocations.find(
+        (allocation) => allocation.slug === category.id,
+      );
+
+      expect(parentAllocation).toBeDefined();
+
+      const callouts = calculateBudgetProgramCallouts(
+        parentAllocation?.amountCents ?? 0,
+        category,
+      );
+
+      expect(callouts.length).toBeLessThanOrEqual(2);
+      expect(sumRowsCents(callouts)).toBeLessThanOrEqual(
+        parentAllocation?.amountCents ?? 0,
+      );
+    }
+  });
+
+  it("does not duplicate spotlight items on the same card", () => {
+    for (const category of auBudget2025_26.categories) {
+      const spotlightLabels = new Set(
+        budget2025_26.spotlightPrograms
+          .filter((spotlight) => spotlight.parentFunctionSlug === category.id)
+          .map((spotlight) => spotlight.label.toLowerCase()),
+      );
+      const spotlightSlugs = new Set<string>(
+        budget2025_26.spotlightPrograms
+          .filter((spotlight) => spotlight.parentFunctionSlug === category.id)
+          .map((spotlight) => spotlight.slug),
+      );
+
+      for (const callout of category.callouts ?? []) {
+        expect(spotlightLabels.has(callout.label.toLowerCase())).toBe(false);
+        expect(spotlightSlugs.has(callout.id)).toBe(false);
+      }
+    }
+  });
+
+  it("keeps judgemental and political phrasing out of callout copy", () => {
+    const bannedPhrases = [
+      "much-needed",
+      "controversial",
+      "underfunded",
+      "bloated",
+      "fair",
+      "unfair",
+      "party",
+      "election",
+      "minister",
+      "labor",
+      "liberal",
+      "coalition",
+      "greens",
+    ];
+
+    for (const category of auBudget2025_26.categories) {
+      for (const callout of category.callouts ?? []) {
+        const copy = `${callout.label} ${callout.descriptionShort}`.toLowerCase();
+
+        for (const phrase of bannedPhrases) {
+          expect(copy).not.toContain(phrase);
+        }
+      }
+    }
   });
 });

@@ -820,6 +820,74 @@ button {
   font-weight: 820;
 }
 
+.program-callouts {
+  display: grid;
+  gap: clamp(0.32rem, 1.05svh, 0.46rem);
+  width: min(100%, 22rem);
+}
+
+.program-callout {
+  display: grid;
+  gap: 0.22rem;
+  width: 100%;
+  border: 2px solid var(--story-ink);
+  border-radius: 0.95rem;
+  padding: clamp(0.36rem, 1.35vw, 0.52rem) 0.58rem;
+  background: rgba(251, 250, 245, 0.78);
+  box-shadow: 0.16rem 0.16rem 0 var(--story-ink);
+  text-align: left;
+}
+
+.program-callout-topline {
+  display: flex;
+  gap: 0.42rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.program-callout-amount {
+  color: var(--story-accent);
+  font-size: clamp(1.15rem, 4.8vw, 1.7rem);
+  line-height: 0.84;
+  font-weight: 1000;
+  white-space: nowrap;
+  paint-order: stroke fill;
+  -webkit-text-stroke: 0.035rem var(--story-ink);
+  text-shadow: 0.035em 0.035em 0 var(--story-ink);
+}
+
+.program-callout p {
+  color: color-mix(in srgb, var(--story-ink) 84%, transparent);
+  font-size: clamp(0.68rem, 2.65vw, 0.8rem);
+  line-height: 1.08;
+  font-weight: 760;
+}
+
+.program-callout b {
+  font-weight: 950;
+}
+
+.program-callout > span {
+  color: color-mix(in srgb, var(--story-ink) 58%, transparent);
+  font-size: clamp(0.56rem, 2.1vw, 0.66rem);
+  line-height: 1;
+  font-weight: 820;
+}
+
+.program-callout-source {
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  padding: 0.22rem 0.38rem;
+  color: inherit;
+  background: color-mix(in srgb, var(--story-accent) 13%, transparent);
+  font-size: clamp(0.56rem, 2.15vw, 0.66rem);
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
 .story-pill {
   max-width: 21rem;
   border: 2px solid currentColor;
@@ -853,6 +921,7 @@ button {
 }
 
 .story-detail-button:focus-visible,
+.program-callout-source:focus-visible,
 .drilldown-row-button:focus-visible,
 .summary-chart-row:focus-visible {
   outline: 4px solid var(--story-green);

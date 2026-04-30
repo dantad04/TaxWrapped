@@ -1,4 +1,8 @@
-import type { BudgetDrilldownDataset, BudgetDrilldownNode } from "@/lib/budget/drilldown-model";
+import type {
+  BudgetDrilldownDataset,
+  BudgetDrilldownNode,
+  ProgramCallout,
+} from "@/lib/budget/drilldown-model";
 
 const budgetPaperSource = {
   sourceId: "bp1-2025-26-statement5-appendix-a-table-a-5-1",
@@ -49,6 +53,22 @@ function bpNode(
   };
 }
 
+function bpCallout(
+  id: string,
+  label: string,
+  amountM: number,
+  descriptionShort: string,
+): ProgramCallout {
+  return {
+    id,
+    label,
+    amountM,
+    descriptionShort,
+    sourceId: budgetPaperSource.sourceId,
+    sourceLocator: budgetPaperSource.sourceLocator,
+  };
+}
+
 function defencePbsNode(
   id: string,
   label: string,
@@ -68,6 +88,26 @@ function defencePbsNode(
     allocationMode: "proportional",
     ...source,
     ...(children ? { children } : {}),
+  };
+}
+
+function defencePbsCallout(
+  id: string,
+  label: string,
+  amountM: number,
+  descriptionShort: string,
+  source:
+    | typeof defencePbsTable4bSource
+    | typeof defencePbsTable5Source
+    | typeof defencePbsTable6Source = defencePbsTable4bSource,
+): ProgramCallout {
+  return {
+    id,
+    label,
+    amountM,
+    descriptionShort,
+    sourceId: source.sourceId,
+    sourceLocator: source.sourceLocator,
   };
 }
 
@@ -144,41 +184,103 @@ export const auBudget2025_26 = {
       ]),
       allocationMode: "proportional",
       allocationBasisM: 57421.2,
+      callouts: [
+        defencePbsCallout(
+          "workforce",
+          "Workforce",
+          17170.9,
+          "Funds Defence workforce costs.",
+        ),
+        defencePbsCallout(
+          "capability-acquisition-program",
+          "Capability Acquisition Program",
+          18800.5,
+          "Funds capability acquisition investment listed in the Defence PBS.",
+        ),
+      ],
     },
     bpNode("public-order-safety", "Public order and safety", 9145, "Courts, legal services and other public order and safety functions.", [
       bpNode("courts-legal-services", "Courts and legal services", 2003, "Courts and legal service expenses."),
       bpNode("other-public-order-safety", "Other public order and safety", 7142, "Other safety, law enforcement, border and related functions."),
     ]),
-    bpNode("education", "Education", 54030, "Higher education, schools, vocational education, student assistance and administration.", [
-      bpNode("higher-education", "Higher education", 12139, "Higher education expenses."),
-      bpNode("vocational-other-education", "Vocational and other education", 2671, "Vocational and other education expenses."),
-      bpNode("schools", "Schools", 32208, "Government and non-government school funding.", [
-        bpNode("non-government-schools", "Non-government schools", 19975, "Non-government school funding."),
-        bpNode("government-schools", "Government schools", 12233, "Government school funding."),
+    {
+      ...bpNode("education", "Education", 54030, "Higher education, schools, vocational education, student assistance and administration.", [
+        bpNode("higher-education", "Higher education", 12139, "Higher education expenses."),
+        bpNode("vocational-other-education", "Vocational and other education", 2671, "Vocational and other education expenses."),
+        bpNode("schools", "Schools", 32208, "Government and non-government school funding.", [
+          bpNode("non-government-schools", "Non-government schools", 19975, "Non-government school funding."),
+          bpNode("government-schools", "Government schools", 12233, "Government school funding."),
+        ]),
+        bpNode("school-education-specific-funding", "School education - specific funding", 874, "Specific school education funding."),
+        bpNode("student-assistance", "Student assistance", 5794, "Student assistance expenses."),
+        bpNode("education-general-administration", "General administration", 344, "Education administration expenses."),
       ]),
-      bpNode("school-education-specific-funding", "School education - specific funding", 874, "Specific school education funding."),
-      bpNode("student-assistance", "Student assistance", 5794, "Student assistance expenses."),
-      bpNode("education-general-administration", "General administration", 344, "Education administration expenses."),
-    ]),
-    bpNode("health", "Health", 124803, "Medical benefits, medicines, hospitals, health services and administration.", [
-      bpNode("medical-services-benefits", "Medical services and benefits", 44832, "Medical services and benefits expenses."),
-      bpNode("pharmaceutical-benefits-services", "Pharmaceutical benefits and services", 22586, "Pharmaceutical benefits and services."),
-      bpNode("assistance-states-public-hospitals", "Assistance to the states for public hospitals", 33928, "Public hospital assistance to states and territories."),
-      bpNode("hospital-services", "Hospital services", 1226, "Hospital services expenses."),
-      bpNode("health-services", "Health services", 15422, "Other health services expenses."),
-      bpNode("health-general-administration", "General administration", 5425, "Health administration expenses."),
-      bpNode("aboriginal-torres-strait-islander-health", "Aboriginal and Torres Strait Islander health", 1383, "Aboriginal and Torres Strait Islander health expenses."),
-    ]),
-    bpNode("social-security-welfare", "Social security and welfare", 290966, "Income support, aged care, disability, families, unemployment, welfare and administration.", [
-      bpNode("assistance-aged", "Assistance to the aged", 109463, "Assistance to older Australians."),
-      bpNode("assistance-veterans-dependants", "Assistance to veterans and dependants", 10301, "Assistance to veterans and dependants."),
-      bpNode("assistance-people-disabilities", "Assistance to people with disabilities", 90884, "Assistance to people with disability."),
-      bpNode("assistance-families-children", "Assistance to families with children", 52486, "Assistance to families with children."),
-      bpNode("assistance-unemployed-sick", "Assistance to the unemployed and the sick", 16955, "Assistance to unemployed people and people who are sick."),
-      bpNode("other-welfare-programs", "Other welfare programs", 1927, "Other welfare programs."),
-      bpNode("assistance-indigenous-australians-nec", "Assistance for Indigenous Australians nec", 3460, "Assistance for Indigenous Australians not elsewhere classified."),
-      bpNode("social-security-general-administration", "General administration", 5489, "Social security and welfare administration."),
-    ]),
+      callouts: [
+        bpCallout(
+          "schools",
+          "Schools",
+          32208,
+          "Funds school education expenses across school sectors.",
+        ),
+        bpCallout(
+          "student-assistance",
+          "Student assistance",
+          5794,
+          "Funds student assistance expenses.",
+        ),
+      ],
+    },
+    {
+      ...bpNode("health", "Health", 124803, "Medical benefits, medicines, hospitals, health services and administration.", [
+        bpNode("medical-services-benefits", "Medical services and benefits", 44832, "Medical services and benefits expenses."),
+        bpNode("pharmaceutical-benefits-services", "Pharmaceutical benefits and services", 22586, "Pharmaceutical benefits and services."),
+        bpNode("assistance-states-public-hospitals", "Assistance to the states for public hospitals", 33928, "Public hospital assistance to states and territories."),
+        bpNode("hospital-services", "Hospital services", 1226, "Hospital services expenses."),
+        bpNode("health-services", "Health services", 15422, "Other health services expenses."),
+        bpNode("health-general-administration", "General administration", 5425, "Health administration expenses."),
+        bpNode("aboriginal-torres-strait-islander-health", "Aboriginal and Torres Strait Islander health", 1383, "Aboriginal and Torres Strait Islander health expenses."),
+      ]),
+      callouts: [
+        bpCallout(
+          "assistance-states-public-hospitals",
+          "Assistance to the states for public hospitals",
+          33928,
+          "Funds public hospital assistance to states and territories.",
+        ),
+        bpCallout(
+          "health-services",
+          "Health services",
+          15422,
+          "Funds other health services recorded in the Health function.",
+        ),
+      ],
+    },
+    {
+      ...bpNode("social-security-welfare", "Social security and welfare", 290966, "Income support, aged care, disability, families, unemployment, welfare and administration.", [
+        bpNode("assistance-aged", "Assistance to the aged", 109463, "Assistance to older Australians."),
+        bpNode("assistance-veterans-dependants", "Assistance to veterans and dependants", 10301, "Assistance to veterans and dependants."),
+        bpNode("assistance-people-disabilities", "Assistance to people with disabilities", 90884, "Assistance to people with disability."),
+        bpNode("assistance-families-children", "Assistance to families with children", 52486, "Assistance to families with children."),
+        bpNode("assistance-unemployed-sick", "Assistance to the unemployed and the sick", 16955, "Assistance to unemployed people and people who are sick."),
+        bpNode("other-welfare-programs", "Other welfare programs", 1927, "Other welfare programs."),
+        bpNode("assistance-indigenous-australians-nec", "Assistance for Indigenous Australians nec", 3460, "Assistance for Indigenous Australians not elsewhere classified."),
+        bpNode("social-security-general-administration", "General administration", 5489, "Social security and welfare administration."),
+      ]),
+      callouts: [
+        bpCallout(
+          "assistance-families-children",
+          "Assistance to families with children",
+          52486,
+          "Funds assistance for families with children.",
+        ),
+        bpCallout(
+          "assistance-unemployed-sick",
+          "Assistance to the unemployed and the sick",
+          16955,
+          "Funds assistance for unemployed people and people who are sick.",
+        ),
+      ],
+    },
     bpNode("housing-community-amenities", "Housing and community amenities", 8952, "Housing, urban and regional development, and environment protection.", [
       bpNode("housing", "Housing", 4402, "Housing expenses."),
       bpNode("urban-regional-development", "Urban and regional development", 2062, "Urban and regional development expenses."),
@@ -190,9 +292,19 @@ export const auBudget2025_26 = {
       bpNode("sport-recreation", "Sport and recreation", 1140, "Sport and recreation expenses."),
       bpNode("national-estate-parks", "National estate and parks", 809, "National estate and parks expenses."),
     ]),
-    bpNode("fuel-energy", "Fuel and energy", 19237, "Fuel and energy function expenses.", [
-      bpNode("fuel-energy-total", "Fuel and energy", 19237, "Budget Paper No. 1 reports this as a single sub-function line."),
-    ]),
+    {
+      ...bpNode("fuel-energy", "Fuel and energy", 19237, "Fuel and energy function expenses.", [
+        bpNode("fuel-energy-total", "Fuel and energy", 19237, "Budget Paper No. 1 reports this as a single sub-function line."),
+      ]),
+      callouts: [
+        bpCallout(
+          "fuel-energy-total",
+          "Fuel and energy",
+          19237,
+          "Funds the Fuel and energy sub-function reported in BP1 Appendix A.",
+        ),
+      ],
+    },
     bpNode("agriculture-forestry-fishing", "Agriculture, forestry and fishing", 4427, "Agriculture, forestry, fishing, natural resources and administration.", [
       bpNode("wool-industry", "Wool industry", 62, "Wool industry expenses."),
       bpNode("grains-industry", "Grains industry", 305, "Grains industry expenses."),

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const routes = [
   { path: "/", heading: "Your Australian Budget Wrapped" },
@@ -22,6 +22,16 @@ test.describe("routes", () => {
 
 test.describe("mobile story flow", () => {
   test.use({ viewport: { width: 390, height: 844 } });
+
+  async function enterTaxableIncome(page: Page) {
+    await page.goto("/");
+    await page.waitForFunction(
+      () => document.documentElement.dataset.storyHydrated === "true",
+    );
+    await page.getByRole("button", { name: "Start", exact: true }).click();
+    await page.getByLabel("Taxable income").fill("90000");
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+  }
 
   test("accepts taxable income and advances through story cards", async ({
     page,
@@ -193,6 +203,54 @@ test.describe("mobile story flow", () => {
     }));
 
     expect(storageLengths).toEqual({ local: 0, session: 0 });
+  });
+
+  test("renders sourced program callouts on category cards", async ({
+    page,
+  }) => {
+    await enterTaxableIncome(page);
+
+    await expect(
+      page.getByRole("heading", { name: "Your tax estimate" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Bracket by bracket." }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Mapped across the Budget" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Social security & welfare" }),
+    ).toBeVisible();
+    await expect(page.getByTestId("program-callouts")).toContainText(
+      "Assistance to families with children",
+    );
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Health" })).toBeVisible();
+    await expect(page.getByTestId("program-callouts")).toContainText(
+      "Assistance to the states for public hospitals",
+    );
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Education" }),
+    ).toBeVisible();
+    await expect(page.getByTestId("program-callouts")).toContainText("Schools");
+
+    await page
+      .getByTestId("program-callouts")
+      .getByRole("link", { name: "Source" })
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/sources/);
+    await expect(
+      page.getByRole("heading", { name: "Sources" }),
+    ).toBeVisible();
   });
 });
 

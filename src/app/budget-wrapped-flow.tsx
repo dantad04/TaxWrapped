@@ -22,11 +22,13 @@ import type {
   SpotlightProgramSlug,
 } from "@/lib/budget/model";
 import {
+  calculateBudgetProgramCallouts,
   calculateBudgetDrilldownView,
   getBudgetDrilldownCategory,
 } from "@/lib/budget/drilldown-data";
 import type {
   BudgetDrilldownAllocationRow,
+  BudgetProgramCalloutAllocationRow,
   BudgetDrilldownView,
 } from "@/lib/budget/drilldown-model";
 import type { ChartTone } from "@/lib/charts/budget-chart-data";
@@ -343,6 +345,42 @@ function TaxBracketWalkCard({
   );
 }
 
+function ProgramCallouts({
+  callouts,
+}: {
+  callouts: readonly BudgetProgramCalloutAllocationRow[];
+}) {
+  if (callouts.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="program-callouts" data-testid="program-callouts">
+      {callouts.slice(0, 2).map((callout) => (
+        <article key={callout.id} className="program-callout">
+          <div className="program-callout-topline">
+            <AnimatedCurrency
+              amount={callout.amount}
+              as="strong"
+              className="program-callout-amount"
+            />
+            <Link
+              className="program-callout-source"
+              href={`/sources#${callout.sourceId}`}
+            >
+              Source
+            </Link>
+          </div>
+          <p>
+            <b>{callout.label}</b> - {callout.descriptionShort}
+          </p>
+          <span>{callout.sourceLocator}</span>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 const drilldownColours = [
   "#bb33b6",
   "#149c48",
@@ -642,6 +680,7 @@ function StoryFrame({
 interface FunctionStory {
   meta: (typeof FUNCTION_STORY_META)[number];
   allocation: BudgetFunctionAllocation;
+  callouts: readonly BudgetProgramCalloutAllocationRow[];
 }
 
 interface SpotlightStory {
@@ -654,8 +693,22 @@ function buildFunctionStories(
 ): FunctionStory[] {
   return FUNCTION_STORY_META.flatMap((meta) => {
     const allocation = allocations.find((item) => item.slug === meta.slug);
+    const category = getBudgetDrilldownCategory(meta.slug);
 
-    return allocation ? [{ meta, allocation }] : [];
+    return allocation
+      ? [
+          {
+            meta,
+            allocation,
+            callouts: category
+              ? calculateBudgetProgramCallouts(
+                  allocation.amountCents,
+                  category,
+                )
+              : [],
+          },
+        ]
+      : [];
   });
 }
 
@@ -986,6 +1039,7 @@ export function BudgetWrappedFlow() {
               as="p"
               className={`story-number story-number-${currentCategoryStory.meta.tone}`}
             />
+            <ProgramCallouts callouts={currentCategoryStory.callouts} />
             <h2 className="story-category-title">
               {currentCategoryStory.meta.title}
             </h2>

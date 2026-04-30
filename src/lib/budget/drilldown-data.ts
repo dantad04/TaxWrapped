@@ -3,7 +3,9 @@ import type {
   BudgetDrilldownAllocationRow,
   BudgetDrilldownDataset,
   BudgetDrilldownNode,
+  BudgetProgramCalloutAllocationRow,
   BudgetDrilldownView,
+  ProgramCallout,
 } from "./drilldown-model";
 
 function amountToCents(amount: number): number {
@@ -81,6 +83,75 @@ function allocateChildrenByBasis(
       sourceLocator: child.sourceLocator,
       allocationMode: child.allocationMode,
       hasChildren: Boolean(child.children?.length),
+    };
+  });
+}
+
+function allocateProgramCalloutsByBasis(
+  parentContributionCents: number,
+  parent: BudgetDrilldownNode,
+  callouts: readonly ProgramCallout[],
+): readonly BudgetProgramCalloutAllocationRow[] {
+  if (callouts.length === 0) {
+    return [];
+  }
+
+  const basisM = getAllocationBasisM(parent);
+  const initial = callouts.map((callout, index) => {
+    const exactCents = (parentContributionCents * callout.amountM) / basisM;
+    const floorCents = Math.floor(exactCents);
+
+    return {
+      callout,
+      index,
+      exactCents,
+      floorCents,
+      remainder: exactCents - floorCents,
+    };
+  });
+  const floorTotal = initial.reduce((sum, item) => sum + item.floorCents, 0);
+  const roundedSubsetTotal = Math.round(
+    initial.reduce((sum, item) => sum + item.exactCents, 0),
+  );
+  const targetTotal = Math.min(parentContributionCents, roundedSubsetTotal);
+  const delta = targetTotal - floorTotal;
+  const adjustedIndexes = new Map<number, number>();
+
+  if (delta > 0) {
+    for (const item of [...initial]
+      .sort(
+        (left, right) =>
+          right.remainder - left.remainder || left.index - right.index,
+      )
+      .slice(0, delta)) {
+      adjustedIndexes.set(item.index, 1);
+    }
+  }
+
+  if (delta < 0) {
+    for (const item of [...initial]
+      .filter((entry) => entry.floorCents > 0)
+      .sort(
+        (left, right) =>
+          left.remainder - right.remainder || left.index - right.index,
+      )
+      .slice(0, Math.abs(delta))) {
+      adjustedIndexes.set(item.index, -1);
+    }
+  }
+
+  return initial.map(({ callout, index, floorCents }) => {
+    const amountCents = floorCents + (adjustedIndexes.get(index) ?? 0);
+
+    return {
+      id: callout.id,
+      label: callout.label,
+      descriptionShort: callout.descriptionShort,
+      amount: centsToAmount(amountCents),
+      amountCents,
+      budgetAmountM: callout.amountM,
+      sourceId: callout.sourceId,
+      sourceLocator: callout.sourceLocator,
     };
   });
 }
@@ -194,6 +265,25 @@ export function calculateBudgetDrilldownView(
     contributionAmountCents,
     rows: allocateChildrenByBasis(contributionAmountCents, node),
   };
+}
+
+export function calculateBudgetProgramCallouts(
+  parentContributionCents: number,
+  category: BudgetDrilldownNode,
+): readonly BudgetProgramCalloutAllocationRow[] {
+  if (!Number.isFinite(parentContributionCents)) {
+    throw new TypeError("Parent contribution cents must be finite.");
+  }
+
+  if (parentContributionCents < 0) {
+    throw new RangeError("Parent contribution cents must not be negative.");
+  }
+
+  return allocateProgramCalloutsByBasis(
+    Math.round(parentContributionCents),
+    category,
+    category.callouts?.slice(0, 2) ?? [],
+  );
 }
 
 export function sumBudgetNodeAmountM(

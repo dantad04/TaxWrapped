@@ -75,7 +75,7 @@ export default function SourcesPage() {
           const support = sourceSupport[source.id as SourceId];
 
           return (
-            <article key={source.id} className="source-card">
+              <article key={source.id} id={source.id} className="source-card">
               <div>
                 <p className="source-card-kicker">{source.publisher}</p>
                 <h2>{source.title}</h2>

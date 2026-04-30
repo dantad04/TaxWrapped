@@ -405,3 +405,34 @@ Result:
 
 - Ticket 012 implemented for human review.
 - No later ticket was started.
+
+## Ticket 014: Sourced Program Callouts
+
+Status: Human Review
+
+Scope:
+
+- Added optional `ProgramCallout` metadata to sourced drilldown category nodes.
+- Added BP1 Appendix A callouts for Social security and welfare, Health, Education, and Fuel and energy.
+- Added Defence PBS callouts for Workforce and Capability Acquisition Program.
+- Added proportional per-callout contribution calculations using the same stable-cent allocation approach as drilldown rows, while keeping callout sums within the parent category contribution.
+- Rendered at most two compact callouts under category-card hero amounts, with count-up dollar figures and source links back to `/sources`.
+- Added `/sources` anchors for registry entries so callout source links resolve to the referenced source card.
+- Added unit coverage for source registry resolution, source-row amount matching, parent contribution bounds, spotlight duplicate avoidance, and banned callout phrasing.
+- Added Playwright coverage for callout rendering on Social security and welfare, Health, and Education cards, plus source-link navigation.
+- Kept tax, Budget, allocation, source registry, storage, analytics, and political copy scope unchanged.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- `npm run typecheck` - failed once on a narrow Set type in the new duplicate-spotlight test, then passed after widening the Set to string
+- `npm run test:run -- tests/unit/budget-drilldown-data.test.ts` - passed
+- `npm run test:e2e` - passed during iteration
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 014 implemented for human review.
+- No later ticket was started.
