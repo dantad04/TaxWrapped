@@ -639,9 +639,13 @@ button {
   padding-block: clamp(1.2rem, 4svh, 3rem);
 }
 
+.story-card-coda {
+  container-type: inline-size;
+}
+
 .story-card-coda .story-title {
-  max-width: 24rem;
-  font-size: clamp(2.18rem, 9.2vw, 5.2rem);
+  max-width: 100%;
+  font-size: clamp(2.05rem, 8vw, 3.05rem);
 }
 
 .story-moment-coda {
@@ -650,8 +654,9 @@ button {
 }
 
 .coda-total {
+  max-width: 100%;
   color: var(--story-blue);
-  font-size: clamp(4.1rem, 17.8vw, 7.8rem);
+  font-size: clamp(3.65rem, 15vw, 5.35rem);
   line-height: 0.76;
   font-weight: 1000;
   white-space: nowrap;
@@ -660,6 +665,16 @@ button {
   paint-order: stroke fill;
   -webkit-text-stroke: clamp(1px, 0.45vw, 3px) var(--story-ink);
   text-shadow: 0.045em 0.045em 0 var(--story-ink);
+}
+
+@supports (font-size: 1cqw) {
+  .story-card-coda .story-title {
+    font-size: clamp(2.05rem, 9.2cqw, 3.05rem);
+  }
+
+  .coda-total {
+    font-size: clamp(3.65rem, 16.6cqw, 5.35rem);
+  }
 }
 
 .coda-slice {
