@@ -250,3 +250,34 @@ Result:
 
 - Ticket 008 implemented for human review.
 - Ticket 009 was not started.
+
+## Ticket 009: Share Card
+
+Status: Human Review
+
+Scope:
+
+- Added a `/share-preview` route for a polished social-poster share-card preview.
+- Added a 1080 by 1920 SVG share-card component with product name, estimated Commonwealth tax, source year, top additive Budget allocations, compact bar-list summary, caveat, and methodology/source pointer.
+- Added share-card data helpers that reuse existing additive allocation/chart helpers and reconcile displayed rows to the estimated tax total.
+- Added a lightweight Share preview link from the final summary screen.
+- Added unit and e2e coverage for share-preview rendering, additive-only share rows, reconciled totals, banned phrase absence, and privacy-sensitive raw-income omission.
+- Generated Ticket 009 screenshots at 390px and 430px for final summary share entry, share preview, and share-card portrait preview, plus an exact 1080 by 1920 share-card PNG.
+- Kept tax, Budget, allocation, source data, storage, analytics, backend upload, and share-card export/download functionality unchanged.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- `npm run typecheck` - passed during iteration
+- `npm run lint` - passed during iteration
+- `npm run test:run` - failed once during iteration on a source-year case mismatch, then passed after aligning rendered copy
+- `npm run build` - passed for production screenshot capture
+- Playwright screenshot capture at 390px, 430px, and 1080 by 1920 - passed after waiting for reveal animation and correcting the exact poster capture
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 009 implemented for human review.
+- Ticket 010 was not started.

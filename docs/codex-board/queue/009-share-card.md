@@ -1,6 +1,6 @@
 # Ticket 009: Share Card
 
-Status: Ready
+Status: Human Review
 
 ## Goal
 

@@ -5,6 +5,7 @@ const routes = [
   { path: "/methodology", heading: "Methodology" },
   { path: "/sources", heading: "Sources" },
   { path: "/privacy", heading: "Privacy" },
+  { path: "/share-preview", heading: "Share preview" },
 ];
 
 test.describe("routes", () => {
@@ -129,6 +130,9 @@ test.describe("mobile story flow", () => {
       page.getByRole("img", { name: /Final summary bar chart/ }),
     ).toBeVisible();
     await expect(
+      page.getByRole("link", { name: "Share preview" }),
+    ).toBeVisible();
+    await expect(
       page.getByRole("link", { name: "Methodology" }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Sources" })).toBeVisible();
@@ -150,5 +154,29 @@ test.describe("mobile story flow", () => {
     }));
 
     expect(storageLengths).toEqual({ local: 0, session: 0 });
+  });
+});
+
+test.describe("share preview", () => {
+  test("renders a privacy-safe additive share card", async ({ page }) => {
+    await page.goto("/share-preview");
+
+    const shareCard = page.getByTestId("share-card");
+
+    await expect(
+      page.getByRole("heading", { name: "Share preview" }),
+    ).toBeVisible();
+    await expect(shareCard).toContainText("Australian Budget Wrapped");
+    await expect(shareCard).toContainText("$19,588");
+    await expect(shareCard).toContainText("2025-26 Budget");
+    await expect(shareCard).toContainText("Social security & welfare");
+    await expect(shareCard).toContainText(
+      "Illustrative estimate. Taxes are not hypothecated.",
+    );
+    await expect(shareCard).not.toContainText("90,000");
+    await expect(shareCard).not.toContainText("$90,000");
+    await expect(shareCard).not.toContainText(
+      "Revenue assistance to the States and Territories",
+    );
   });
 });

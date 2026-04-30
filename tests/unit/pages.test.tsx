@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import Home from "@/app/page";
 import MethodologyPage from "@/app/methodology/page";
 import PrivacyPage from "@/app/privacy/page";
+import SharePreviewPage from "@/app/share-preview/page";
 import SourcesPage from "@/app/sources/page";
 import { sourceRegistry } from "@/data/sources";
 
@@ -76,6 +77,25 @@ describe("routes", () => {
     expect(screen.getByText(/sessionStorage/)).toBeDefined();
     expect(screen.getByText(/cookies/)).toBeDefined();
     expect(screen.getByText(/not tax advice/)).toBeDefined();
+  });
+
+  it("share preview page renders without raw taxable income", () => {
+    render(<SharePreviewPage />);
+
+    const shareCard = screen.getByTestId("share-card");
+    const shareCardText = shareCard.textContent ?? "";
+
+    expect(screen.getByRole("heading", { name: "Share preview" })).toBeDefined();
+    expect(shareCardText).toContain("Australian Budget Wrapped");
+    expect(shareCardText).toContain("$19,588");
+    expect(shareCardText).toContain("2025-26 Budget");
+    expect(shareCardText).toContain("Social security & welfare");
+    expect(shareCardText).toContain("Health");
+    expect(shareCardText).toContain(
+      "Illustrative estimate. Taxes are not hypothecated.",
+    );
+    expect(shareCardText).not.toContain("90,000");
+    expect(shareCardText).not.toContain("$90,000");
   });
 
   it("landing page contains the hypothecation disclaimer", () => {

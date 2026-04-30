@@ -717,6 +717,7 @@ export function BudgetWrappedFlow() {
           </p>
           <TransparencyLinkGroup
             links={[
+              { href: "/share-preview", label: "Share preview" },
               { href: "/methodology", label: "Methodology" },
               { href: "/sources", label: "Sources" },
               { href: "/privacy", label: "Privacy" },
