@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   AllocationStackedChart,
   CategoryShareChart,
@@ -39,6 +45,7 @@ import type {
 } from "@/lib/budget/drilldown-model";
 import type { ChartTone } from "@/lib/charts/budget-chart-data";
 import { useCountUp } from "@/hooks/use-count-up";
+import { useFitText } from "@/hooks/use-fit-text";
 import { setSharePreviewEstimatedTax } from "@/lib/share/share-preview-state";
 import { estimateAustralianTax2025_26 } from "@/lib/tax/australian-resident-2025-26";
 import type { BracketWalkRow } from "@/lib/tax/bracket-walk";
@@ -217,32 +224,162 @@ function formatPercent(share: number) {
   return `${percentFormatter.format(share * 100)}%`;
 }
 
+type FitTextElement = "div" | "h1" | "h2" | "p" | "span" | "strong";
+
+interface FitTextProps {
+  as?: FitTextElement;
+  children: React.ReactNode;
+  className?: string;
+  deps?: readonly unknown[];
+  fitId: string;
+  minPx: number;
+  maxPx: number;
+  style?: CSSProperties;
+  ariaHidden?: boolean;
+  ariaLabel?: string;
+  suppressHydrationWarning?: boolean;
+}
+
+function FitText({
+  as = "span",
+  ariaHidden,
+  ariaLabel,
+  children,
+  className,
+  deps = [],
+  fitId,
+  maxPx,
+  minPx,
+  style,
+  suppressHydrationWarning,
+}: FitTextProps) {
+  const ref = useRef<HTMLElement>(null);
+  const fontSize = useFitText({
+    ref,
+    minPx,
+    maxPx,
+    deps,
+  });
+
+  const props = {
+    "aria-hidden": ariaHidden,
+    "aria-label": ariaLabel,
+    className: className ? `${className} fit-text` : "fit-text",
+    "data-fit-max-px": maxPx,
+    "data-fit-min-px": minPx,
+    "data-hero-fit": fitId,
+    style: {
+      ...style,
+      fontSize: `${fontSize}px`,
+    },
+    suppressHydrationWarning,
+  };
+
+  if (as === "div") {
+    return (
+      <div {...props} ref={ref as React.RefObject<HTMLDivElement>}>
+        {children}
+      </div>
+    );
+  }
+
+  if (as === "h1") {
+    return (
+      <h1 {...props} ref={ref as React.RefObject<HTMLHeadingElement>}>
+        {children}
+      </h1>
+    );
+  }
+
+  if (as === "h2") {
+    return (
+      <h2 {...props} ref={ref as React.RefObject<HTMLHeadingElement>}>
+        {children}
+      </h2>
+    );
+  }
+
+  if (as === "p") {
+    return (
+      <p {...props} ref={ref as React.RefObject<HTMLParagraphElement>}>
+        {children}
+      </p>
+    );
+  }
+
+  if (as === "strong") {
+    return (
+      <strong {...props} ref={ref as React.RefObject<HTMLElement>}>
+        {children}
+      </strong>
+    );
+  }
+
+  return (
+    <span {...props} ref={ref as React.RefObject<HTMLSpanElement>}>
+      {children}
+    </span>
+  );
+}
+
 function AnimatedCurrency({
   amount,
   as: Component = "span",
   className,
+  fit,
 }: {
   amount: number;
   as?: "p" | "span" | "strong";
   className?: string;
+  fit?: {
+    id: string;
+    minPx: number;
+    maxPx: number;
+  };
 }) {
   const displayedAmount = useCountUp(amount, 700);
   const finalValue = formatCurrency(amount);
   const displayedValue = formatCurrency(displayedAmount);
+  const content = (
+    <span
+      aria-hidden="true"
+      className="countup-currency-value"
+      suppressHydrationWarning
+    >
+      {displayedValue}
+    </span>
+  );
+  const countUpClassName = className
+    ? `${className} countup-currency`
+    : "countup-currency";
+  const countUpStyle = {
+    "--countup-width": `${finalValue.length}ch`,
+  } as CSSProperties;
+
+  if (fit) {
+    return (
+      <FitText
+        ariaLabel={finalValue}
+        as={Component}
+        className={countUpClassName}
+        deps={[finalValue]}
+        fitId={fit.id}
+        maxPx={fit.maxPx}
+        minPx={fit.minPx}
+        style={countUpStyle}
+      >
+        {content}
+      </FitText>
+    );
+  }
 
   return (
     <Component
       aria-label={finalValue}
-      className={className ? `${className} countup-currency` : "countup-currency"}
-      style={{ "--countup-width": `${finalValue.length}ch` } as CSSProperties}
+      className={countUpClassName}
+      style={countUpStyle}
     >
-      <span
-        aria-hidden="true"
-        className="countup-currency-value"
-        suppressHydrationWarning
-      >
-        {displayedValue}
-      </span>
+      {content}
     </Component>
   );
 }
@@ -298,7 +435,19 @@ function TaxEstimateMark() {
 }
 
 function PosterYear() {
-  return <div aria-hidden="true" className="story-poster-year">25-26</div>;
+  return (
+    <FitText
+      ariaHidden
+      as="div"
+      className="story-poster-year"
+      deps={["25-26"]}
+      fitId="intro-year"
+      maxPx={180}
+      minPx={82}
+    >
+      25-26
+    </FitText>
+  );
 }
 
 function TaxBracketWalkCard({
@@ -313,7 +462,16 @@ function TaxBracketWalkCard({
   return (
     <section className="story-moment bracket-walk-card">
       <p className="story-eyebrow">How your tax was built</p>
-      <h2 className="story-title">{title}</h2>
+      <FitText
+        as="h2"
+        className="story-title"
+        deps={[title]}
+        fitId="bracket-title"
+        maxPx={80}
+        minPx={34}
+      >
+        {title}
+      </FitText>
       <div className="bracket-walk-list" aria-label="Tax bracket breakdown">
         {rows.map((row) => (
           <div
@@ -346,6 +504,7 @@ function TaxBracketWalkCard({
             amount={totalAmount}
             as="strong"
             className="bracket-walk-total-amount"
+            fit={{ id: "bracket-total", minPx: 30, maxPx: 56 }}
           />
         </div>
       </div>
@@ -392,27 +551,59 @@ function ProgramCallouts({
 function AnimatedBillions({
   amountM,
   className,
+  fit,
 }: {
   amountM: number;
   className?: string;
+  fit?: {
+    id: string;
+    minPx: number;
+    maxPx: number;
+  };
 }) {
   const displayedAmountM = useCountUp(amountM, 700);
   const finalValue = formatCommonwealthBill(amountM);
   const displayedValue = formatCommonwealthBill(displayedAmountM);
+  const content = (
+    <span
+      aria-hidden="true"
+      className="countup-currency-value"
+      suppressHydrationWarning
+    >
+      {displayedValue}
+    </span>
+  );
+  const countUpClassName = className
+    ? `${className} countup-currency`
+    : "countup-currency";
+  const countUpStyle = {
+    "--countup-width": `${finalValue.length}ch`,
+  } as CSSProperties;
+
+  if (fit) {
+    return (
+      <FitText
+        ariaLabel={finalValue}
+        as="p"
+        className={countUpClassName}
+        deps={[finalValue]}
+        fitId={fit.id}
+        maxPx={fit.maxPx}
+        minPx={fit.minPx}
+        style={countUpStyle}
+      >
+        {content}
+      </FitText>
+    );
+  }
 
   return (
     <p
       aria-label={finalValue}
-      className={className ? `${className} countup-currency` : "countup-currency"}
-      style={{ "--countup-width": `${finalValue.length}ch` } as CSSProperties}
+      className={countUpClassName}
+      style={countUpStyle}
     >
-      <span
-        aria-hidden="true"
-        className="countup-currency-value"
-        suppressHydrationWarning
-      >
-        {displayedValue}
-      </span>
+      {content}
     </p>
   );
 }
@@ -432,10 +623,20 @@ function AustraliaReceiptCodaCard({
   return (
     <section className="story-moment story-moment-coda">
       <p className="story-eyebrow">Zooming out</p>
-      <h2 className="story-title">{title}</h2>
+      <FitText
+        as="h2"
+        className="story-title"
+        deps={[title]}
+        fitId="coda-title"
+        maxPx={54}
+        minPx={32}
+      >
+        {title}
+      </FitText>
       <AnimatedBillions
         amountM={COMMONWEALTH_TOTAL_EXPENSES_M}
         className="coda-total"
+        fit={{ id: "coda-total", minPx: 56, maxPx: 86 }}
       />
       {scaleDenominator !== null && (
         <p className="coda-slice">
@@ -564,7 +765,11 @@ function BudgetDrilldownCard({
       />
       <div className="drilldown-headline">
         <p>You contributed</p>
-        <AnimatedCurrency amount={view.contributionAmount} as="strong" />
+        <AnimatedCurrency
+          amount={view.contributionAmount}
+          as="strong"
+          fit={{ id: "drilldown-contribution", minPx: 46, maxPx: 104 }}
+        />
         <span>to {view.node.label}.</span>
       </div>
       <div
@@ -1016,7 +1221,16 @@ export function BudgetWrappedFlow() {
       {!activeDrilldownView && currentStep.kind === "intro" && (
         <section className="story-moment story-moment-center">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
-          <h1 className="story-title">{currentStep.title}</h1>
+          <FitText
+            as="h1"
+            className="story-title"
+            deps={[currentStep.title]}
+            fitId="intro-title"
+            maxPx={78}
+            minPx={34}
+          >
+            {currentStep.title}
+          </FitText>
           <p className="story-copy">
             Estimate how your Commonwealth tax maps across Australian
             Government spending.
@@ -1030,7 +1244,16 @@ export function BudgetWrappedFlow() {
       {!activeDrilldownView && currentStep.kind === "input" && (
         <section className="story-moment">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
-          <h2 className="story-title">{currentStep.title}</h2>
+          <FitText
+            as="h2"
+            className="story-title"
+            deps={[currentStep.title]}
+            fitId="input-title"
+            maxPx={90}
+            minPx={36}
+          >
+            {currentStep.title}
+          </FitText>
           <form
             className="income-form"
             onSubmit={(event) => {
@@ -1063,11 +1286,21 @@ export function BudgetWrappedFlow() {
         <section className="story-moment story-moment-center">
           <TaxEstimateMark />
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
-          <h2 className="story-title">{currentStep.title}</h2>
+          <FitText
+            as="h2"
+            className="story-title"
+            deps={[currentStep.title]}
+            fitId="tax-title"
+            maxPx={84}
+            minPx={38}
+          >
+            {currentStep.title}
+          </FitText>
           <AnimatedCurrency
             amount={taxEstimate.totalEstimatedTax}
             as="p"
             className="story-number story-number-red"
+            fit={{ id: "tax-total", minPx: 54, maxPx: 108 }}
           />
           <p className="story-copy">
             Including a simplified Medicare levy. Still an estimate, not tax
@@ -1093,9 +1326,26 @@ export function BudgetWrappedFlow() {
       {!activeDrilldownView && currentStep.kind === "allocation" && (
         <section className="story-moment story-moment-allocation">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
-          <h2 className="story-title">{currentStep.title}</h2>
+          <FitText
+            as="h2"
+            className="story-title"
+            deps={[currentStep.title]}
+            fitId="allocation-title"
+            maxPx={84}
+            minPx={34}
+          >
+            {currentStep.title}
+          </FitText>
           <p className="allocation-hero">
-            <span>{formatCurrency(taxEstimate.totalEstimatedTax)}</span>
+            <FitText
+              as="span"
+              deps={[formatCurrency(taxEstimate.totalEstimatedTax)]}
+              fitId="allocation-total"
+              maxPx={62}
+              minPx={30}
+            >
+              {formatCurrency(taxEstimate.totalEstimatedTax)}
+            </FitText>
             split proportionally
           </p>
           <AllocationStackedChart summary={allocationSummary} />
@@ -1125,16 +1375,33 @@ export function BudgetWrappedFlow() {
               tone={currentCategoryStory.meta.tone}
             />
             <p className="story-eyebrow">{currentStep.eyebrow}</p>
-            <p className="story-kicker">{currentCategoryStory.meta.message}</p>
+            <FitText
+              as="p"
+              className="story-kicker"
+              deps={[currentCategoryStory.meta.message]}
+              fitId="category-kicker"
+              maxPx={36}
+              minPx={22}
+            >
+              {currentCategoryStory.meta.message}
+            </FitText>
             <AnimatedCurrency
               amount={currentCategoryStory.allocation.amount}
               as="p"
               className={`story-number story-number-${currentCategoryStory.meta.tone}`}
+              fit={{ id: "category-amount", minPx: 52, maxPx: 112 }}
             />
             <ProgramCallouts callouts={currentCategoryStory.callouts} />
-            <h2 className="story-category-title">
+            <FitText
+              as="h2"
+              className="story-category-title"
+              deps={[currentCategoryStory.meta.title]}
+              fitId="category-title"
+              maxPx={48}
+              minPx={26}
+            >
               {currentCategoryStory.meta.title}
-            </h2>
+            </FitText>
             <p className="story-copy story-copy-tight">
               {currentCategoryStory.meta.detail}
             </p>
@@ -1192,15 +1459,36 @@ export function BudgetWrappedFlow() {
               tone={currentSpotlightStory.meta.tone}
             />
             <p className="story-eyebrow">{currentStep.eyebrow}</p>
-            <p className="story-kicker">{currentSpotlightStory.meta.message}</p>
-            <p
+            <FitText
+              as="p"
+              className="story-kicker"
+              deps={[currentSpotlightStory.meta.message]}
+              fitId="spotlight-kicker"
+              maxPx={36}
+              minPx={22}
+            >
+              {currentSpotlightStory.meta.message}
+            </FitText>
+            <FitText
+              as="p"
               className={`story-number story-number-${currentSpotlightStory.meta.tone}`}
+              deps={[formatCurrency(currentSpotlightStory.allocation.amount)]}
+              fitId="spotlight-amount"
+              maxPx={112}
+              minPx={52}
             >
               {formatCurrency(currentSpotlightStory.allocation.amount)}
-            </p>
-            <h2 className="story-category-title">
+            </FitText>
+            <FitText
+              as="h2"
+              className="story-category-title"
+              deps={[currentSpotlightStory.meta.title]}
+              fitId="spotlight-title"
+              maxPx={48}
+              minPx={26}
+            >
               {currentSpotlightStory.meta.title}
-            </h2>
+            </FitText>
             <p className="story-copy story-copy-tight">
               {currentSpotlightStory.meta.detail}
             </p>
@@ -1214,11 +1502,21 @@ export function BudgetWrappedFlow() {
       {!activeDrilldownView && currentStep.kind === "summary" && (
         <section className="story-moment story-moment-summary">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
-          <h2 className="story-title">{currentStep.title}</h2>
+          <FitText
+            as="h2"
+            className="story-title"
+            deps={[currentStep.title]}
+            fitId="summary-title"
+            maxPx={72}
+            minPx={32}
+          >
+            {currentStep.title}
+          </FitText>
           <AnimatedCurrency
             amount={taxEstimate.totalEstimatedTax}
             as="p"
             className="summary-total"
+            fit={{ id: "summary-total", minPx: 52, maxPx: 120 }}
           />
           <SummaryRankedBarChart
             summary={allocationSummary}

@@ -2,6 +2,9 @@ import { expect, type Page, test } from "@playwright/test";
 import fs from "node:fs/promises";
 
 const SHARE_CARD_EXPORT_FILENAME = "australian-budget-wrapped-2025-26.png";
+const HERO_FIT_SELECTOR = "[data-hero-fit]";
+const HERO_FIT_INCOMES = [0, 5, 18200, 90000, 250000, 1000000] as const;
+const HERO_FIT_VIEWPORT_WIDTHS = [360, 390, 430] as const;
 
 const routes = [
   { path: "/", heading: "Your Australian Budget Wrapped" },
@@ -268,6 +271,198 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("heading", { name: "Sources" }),
     ).toBeVisible();
+  });
+});
+
+async function waitForHeroFitCycle(page: Page) {
+  await page.waitForFunction(
+    (selector) => document.querySelectorAll(selector).length > 0,
+    HERO_FIT_SELECTOR,
+  );
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
+}
+
+async function expectVisibleHeroesToFit(page: Page, context: string) {
+  await waitForHeroFitCycle(page);
+
+  const failures = await page.locator(HERO_FIT_SELECTOR).evaluateAll(
+    (elements) =>
+      elements.flatMap((element) => {
+        const htmlElement = element as HTMLElement;
+        const rect = htmlElement.getBoundingClientRect();
+        const style = window.getComputedStyle(htmlElement);
+
+        if (
+          style.display === "none" ||
+          style.visibility === "hidden" ||
+          rect.width === 0 ||
+          rect.height === 0
+        ) {
+          return [];
+        }
+
+        const parent = htmlElement.parentElement;
+        const parentRect = parent?.getBoundingClientRect();
+        const scrollOverflow =
+          htmlElement.scrollWidth > htmlElement.clientWidth + 1;
+        const parentOverflow =
+          parentRect !== undefined &&
+          (rect.left < parentRect.left - 1 || rect.right > parentRect.right + 1);
+
+        if (!scrollOverflow && !parentOverflow) {
+          return [];
+        }
+
+        return [
+          {
+            clientWidth: htmlElement.clientWidth,
+            fitId: htmlElement.dataset.heroFit,
+            fontSize: style.fontSize,
+            parentLeft: parentRect?.left,
+            parentRight: parentRect?.right,
+            rectLeft: rect.left,
+            rectRight: rect.right,
+            scrollWidth: htmlElement.scrollWidth,
+            text: htmlElement.textContent,
+          },
+        ];
+      }),
+  );
+
+  expect(failures, context).toEqual([]);
+}
+
+async function startStoryWithIncome(page: Page, income: number) {
+  await page.goto("/");
+  await page.waitForFunction(
+    () => document.documentElement.dataset.storyHydrated === "true",
+  );
+  await expectVisibleHeroesToFit(page, `intro income ${income}`);
+  await page.getByRole("button", { name: "Start", exact: true }).click();
+  await expectVisibleHeroesToFit(page, `input income ${income}`);
+  await page.getByLabel("Taxable income").fill(String(income));
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+}
+
+async function advanceAndFit(
+  page: Page,
+  heading: string | RegExp,
+  context: string,
+) {
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+  await expectVisibleHeroesToFit(page, context);
+}
+
+async function walkFlowAndAssertHeroFit(page: Page, income: number) {
+  await startStoryWithIncome(page, income);
+
+  await expect(page.getByRole("heading", { name: "Your tax estimate" })).toBeVisible();
+  await expectVisibleHeroesToFit(page, `tax income ${income}`);
+
+  await advanceAndFit(page, "Bracket by bracket.", `bracket income ${income}`);
+  await advanceAndFit(
+    page,
+    "Mapped across the Budget",
+    `allocation income ${income}`,
+  );
+
+  const categoryHeadings = [
+    "Social security & welfare",
+    "Health",
+    "Education",
+    "Defence",
+    "Energy & resources",
+  ];
+
+  for (const [index, heading] of categoryHeadings.entries()) {
+    await advanceAndFit(page, heading, `${heading} income ${income}`);
+
+    if (index === 0) {
+      await page.getByRole("button", { name: "Open breakdown" }).click();
+      await expect(
+        page.getByText(/to Social security and welfare\./),
+      ).toBeVisible();
+      await expectVisibleHeroesToFit(
+        page,
+        `drilldown ${heading} income ${income}`,
+      );
+      await page.getByRole("button", { name: "Done", exact: true }).click();
+      await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+      await expectVisibleHeroesToFit(
+        page,
+        `${heading} after drilldown income ${income}`,
+      );
+    }
+  }
+
+  await advanceAndFit(page, "States and territories", `states income ${income}`);
+  await advanceAndFit(page, "Debt interest", `debt income ${income}`);
+  await advanceAndFit(
+    page,
+    "Your illustrative receipt",
+    `summary income ${income}`,
+  );
+  await advanceAndFit(
+    page,
+    "Australia's 2025-26 Commonwealth bill.",
+    `coda income ${income}`,
+  );
+}
+
+test.describe("fit-to-width hero typography", () => {
+  test.setTimeout(90_000);
+
+  for (const viewportWidth of HERO_FIT_VIEWPORT_WIDTHS) {
+    test.describe(`${viewportWidth}px viewport`, () => {
+      test.use({ viewport: { width: viewportWidth, height: 844 } });
+
+      for (const income of HERO_FIT_INCOMES) {
+        test(`fits hero text through the flow for taxable income ${income}`, async ({
+          page,
+        }) => {
+          await walkFlowAndAssertHeroFit(page, income);
+        });
+      }
+    });
+  }
+
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("fits category amount by content length, not just container width", async ({
+    page,
+  }) => {
+    async function getFirstCategoryAmountFontSize(income: number) {
+      await startStoryWithIncome(page, income);
+      await advanceAndFit(page, "Bracket by bracket.", `bracket ${income}`);
+      await advanceAndFit(
+        page,
+        "Mapped across the Budget",
+        `allocation ${income}`,
+      );
+      await advanceAndFit(
+        page,
+        "Social security & welfare",
+        `category ${income}`,
+      );
+
+      return page
+        .locator('[data-hero-fit="category-amount"]')
+        .first()
+        .evaluate((element) =>
+          Number.parseFloat(window.getComputedStyle(element).fontSize),
+        );
+    }
+
+    const shortAmountFontSize = await getFirstCategoryAmountFontSize(5);
+    const longAmountFontSize = await getFirstCategoryAmountFontSize(1000000);
+
+    expect(shortAmountFontSize).toBeGreaterThan(longAmountFontSize + 1);
   });
 });
 
