@@ -424,6 +424,12 @@ button {
   text-shadow: 0.045em 0.045em 0 #080808;
 }
 
+.story-card-tax .story-number {
+  font-size: clamp(4.35rem, 14.8vw, 6.15rem);
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
 .story-card-tax .story-eyebrow,
 .story-card-spotlight .story-eyebrow,
 .story-card-summary .story-eyebrow,
@@ -785,9 +791,9 @@ button {
   gap: 0.42rem 0.55rem;
 }
 
-.allocation-chart-key span {
+.allocation-chart-key > span {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto auto;
   gap: 0.1rem 0.38rem;
   align-items: center;
   min-width: 0;
@@ -797,11 +803,15 @@ button {
 }
 
 .allocation-chart-key strong {
-  grid-column: 2;
   display: block;
   font-size: clamp(0.88rem, 3.25vw, 1.08rem);
   line-height: 0.88;
   font-weight: 1000;
+  white-space: nowrap;
+}
+
+.allocation-chart-key-label {
+  grid-column: 1 / -1;
 }
 
 .category-chart {

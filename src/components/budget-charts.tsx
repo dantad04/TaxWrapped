@@ -108,7 +108,7 @@ export function AllocationStackedChart({
           <span key={segment.id}>
             <i className={`chart-dot chart-dot-${segment.tone}`} />
             <strong>{formatCurrency(segment.amount)}</strong>
-            {segment.label}
+            <span className="allocation-chart-key-label">{segment.label}</span>
           </span>
         ))}
       </div>
