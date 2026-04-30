@@ -19,6 +19,42 @@ export const sourceRegistry = {
     sourceLocator: "Statement 5, Table 5.3.1",
     note: "Selected top expense programs, reported in AUD millions and used only as non-additive spotlights.",
   },
+  "bp1-2025-26-statement5-appendix-a-table-a-5-1": {
+    id: "bp1-2025-26-statement5-appendix-a-table-a-5-1",
+    title:
+      "Budget Paper No. 1 2025-26, Statement 5, Appendix A, Table A.5.1: Estimates of expenses by function and sub-function",
+    publisher: "Australian Government",
+    url: "https://budget.gov.au/content/bp1/download/bp1_2025-26.pdf",
+    sourceLocator: "Statement 5, Appendix A, Table A.5.1",
+    note: "Top-level expenses and sub-function expenses by function, reported in AUD millions.",
+  },
+  "defence-pbs-2025-26-table-4b": {
+    id: "defence-pbs-2025-26-table-4b",
+    title:
+      "Defence Portfolio Budget Statements 2025-26, Table 4b: Defence Planned Expenditure by Key Cost Category",
+    publisher: "Department of Defence",
+    url: "https://www.defence.gov.au/sites/default/files/2025-03/2025-26_Defence_PBS_00_Complete.pdf",
+    sourceLocator: "Table 4b",
+    note: "Defence planned expenditure by key cost category, used proportionally for Defence drill-downs.",
+  },
+  "defence-pbs-2025-26-table-5": {
+    id: "defence-pbs-2025-26-table-5",
+    title:
+      "Defence Portfolio Budget Statements 2025-26, Table 5: Capability Acquisition Program",
+    publisher: "Department of Defence",
+    url: "https://www.defence.gov.au/sites/default/files/2025-03/2025-26_Defence_PBS_00_Complete.pdf",
+    sourceLocator: "Table 5",
+    note: "Capability Acquisition Program components for nested Defence drill-downs.",
+  },
+  "defence-pbs-2025-26-table-6": {
+    id: "defence-pbs-2025-26-table-6",
+    title:
+      "Defence Portfolio Budget Statements 2025-26, Table 6: Capability Sustainment Program",
+    publisher: "Department of Defence",
+    url: "https://www.defence.gov.au/sites/default/files/2025-03/2025-26_Defence_PBS_00_Complete.pdf",
+    sourceLocator: "Table 6",
+    note: "Capability Sustainment Program components for nested Defence drill-downs.",
+  },
   "ato-resident-tax-rates-2025-26": {
     id: "ato-resident-tax-rates-2025-26",
     title: "Tax rates - Australian resident",

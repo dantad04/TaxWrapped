@@ -33,6 +33,22 @@ const sourceSupport: Partial<
     sourceYear: "2025-26 Budget",
     supports: "Selected non-additive spotlight program amounts.",
   },
+  "bp1-2025-26-statement5-appendix-a-table-a-5-1": {
+    sourceYear: "2025-26 Budget",
+    supports: "Main function and sub-function data used for drill-down category screens.",
+  },
+  "defence-pbs-2025-26-table-4b": {
+    sourceYear: "2025-26 Budget",
+    supports: "Defence key cost category proportions used to split the Defence drill-down.",
+  },
+  "defence-pbs-2025-26-table-5": {
+    sourceYear: "2025-26 Budget",
+    supports: "Nested Capability Acquisition Program rows in the Defence drill-down.",
+  },
+  "defence-pbs-2025-26-table-6": {
+    sourceYear: "2025-26 Budget",
+    supports: "Nested Capability Sustainment Program rows in the Defence drill-down.",
+  },
 };
 
 const sources = Object.values(sourceRegistry);

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   AllocationStackedChart,
@@ -20,6 +21,14 @@ import type {
   BudgetFunctionSlug,
   SpotlightProgramSlug,
 } from "@/lib/budget/model";
+import {
+  calculateBudgetDrilldownView,
+  getBudgetDrilldownCategory,
+} from "@/lib/budget/drilldown-data";
+import type {
+  BudgetDrilldownAllocationRow,
+  BudgetDrilldownView,
+} from "@/lib/budget/drilldown-model";
 import type { ChartTone } from "@/lib/charts/budget-chart-data";
 import { estimateAustralianTax2025_26 } from "@/lib/tax/australian-resident-2025-26";
 
@@ -174,6 +183,7 @@ type StepKind =
   | "allocation"
   | "category"
   | "spotlight"
+  | "drilldown"
   | "summary";
 
 interface StoryStep {
@@ -245,6 +255,134 @@ function TaxEstimateMark() {
 
 function PosterYear() {
   return <div aria-hidden="true" className="story-poster-year">25-26</div>;
+}
+
+const drilldownColours = [
+  "#bb33b6",
+  "#149c48",
+  "#2e55ff",
+  "#df1f26",
+  "#c5d8da",
+  "#ddc5c8",
+  "#f4c84e",
+  "#929292",
+] as const;
+
+function getDrilldownColour(index: number) {
+  return drilldownColours[index % drilldownColours.length];
+}
+
+function getFunctionTone(slug: string): AccentTone {
+  return (
+    FUNCTION_STORY_META.find((item) => item.slug === slug)?.tone ?? "magenta"
+  );
+}
+
+function buildConicGradient(rows: readonly BudgetDrilldownAllocationRow[]) {
+  const totalCents = rows.reduce((total, row) => total + row.amountCents, 0);
+
+  if (totalCents === 0) {
+    return "conic-gradient(#d8d5ce 0deg 360deg)";
+  }
+
+  let cursor = 0;
+  const segments = rows.map((row, index) => {
+    const start = cursor;
+    const share = row.amountCents / totalCents;
+    cursor += share * 360;
+
+    return `${getDrilldownColour(index)} ${start}deg ${cursor}deg`;
+  });
+
+  return `conic-gradient(${segments.join(", ")})`;
+}
+
+function getSourcePrefix(view: BudgetDrilldownView) {
+  return view.node.id === "defence" || view.path[0]?.id === "defence"
+    ? "Defence breakdown"
+    : "Source";
+}
+
+function BudgetDrilldownCard({
+  view,
+  onSelectChild,
+}: {
+  view: BudgetDrilldownView;
+  onSelectChild: (id: string) => void;
+}) {
+  const maxCents = Math.max(...view.rows.map((row) => row.amountCents), 0);
+  const sourcePrefix = getSourcePrefix(view);
+  const defenceBreakdownSource = view.node.id === "defence" ? view.rows[0]?.source : null;
+
+  return (
+    <section className="drilldown-card">
+      <div
+        className="drilldown-donut"
+        style={{ "--drilldown-chart": buildConicGradient(view.rows) } as CSSProperties}
+        aria-hidden="true"
+      />
+      <div className="drilldown-headline">
+        <p>You contributed</p>
+        <strong>{formatCurrency(view.contributionAmount)}</strong>
+        <span>to {view.node.label}.</span>
+      </div>
+      <div className="drilldown-bars">
+        {view.rows.map((row, index) => {
+          const width =
+            maxCents > 0 ? Math.max(2, (row.amountCents / maxCents) * 100) : 0;
+          const colour = getDrilldownColour(index);
+          const content = (
+            <>
+              <span className="drilldown-bar-track">
+                <span
+                  className="drilldown-bar-fill"
+                  style={{ width: `${width}%`, backgroundColor: colour }}
+                />
+              </span>
+              <strong>{formatCurrency(row.amount)}</strong>
+              <span className="drilldown-row-text">
+                <b>{row.label}</b>
+                <small>{row.description}</small>
+              </span>
+            </>
+          );
+
+          return row.hasChildren ? (
+            <button
+              key={row.id}
+              type="button"
+              className="drilldown-row drilldown-row-button"
+              onClick={() => onSelectChild(row.id)}
+              aria-label={`Open ${row.label} breakdown`}
+            >
+              {content}
+            </button>
+          ) : (
+            <div key={row.id} className="drilldown-row">
+              {content}
+            </div>
+          );
+        })}
+      </div>
+      <p className="drilldown-source">
+        {view.node.id === "defence" ? "Source" : sourcePrefix}:{" "}
+        {view.node.source}
+      </p>
+      {defenceBreakdownSource && (
+        <p className="drilldown-source">
+          Defence breakdown: {defenceBreakdownSource}
+        </p>
+      )}
+      <p className="drilldown-source drilldown-source-muted">
+        {view.node.sourceLocator}
+      </p>
+      <p className="drilldown-hint">
+        {view.rows.some((row) => row.hasChildren)
+          ? "Tap on a budget line to read more."
+          : "No deeper sourced breakdown is available for these lines."}
+      </p>
+    </section>
+  );
 }
 
 function TransparencyLinkGroup({
@@ -391,6 +529,7 @@ function buildSpotlightStories(
 export function BudgetWrappedFlow() {
   const [stepIndex, setStepIndex] = useState(0);
   const [incomeInput, setIncomeInput] = useState("");
+  const [activeDrilldownPath, setActiveDrilldownPath] = useState<string[]>([]);
   const taxableIncome = parseIncome(incomeInput);
   const hasIncome = taxableIncome !== null;
 
@@ -410,6 +549,16 @@ export function BudgetWrappedFlow() {
   const spotlightSummary = useMemo(
     () => calculateSpotlightAllocation(taxEstimate.totalEstimatedTax),
     [taxEstimate.totalEstimatedTax],
+  );
+  const activeDrilldownView = useMemo(
+    () =>
+      activeDrilldownPath.length > 0
+        ? calculateBudgetDrilldownView(
+            taxEstimate.totalEstimatedTax,
+            activeDrilldownPath,
+          )
+        : null,
+    [activeDrilldownPath, taxEstimate.totalEstimatedTax],
   );
   const categoryStories = buildFunctionStories(allocationSummary.allocations);
   const spotlightStories = buildSpotlightStories(spotlightSummary.allocations);
@@ -479,6 +628,10 @@ export function BudgetWrappedFlow() {
       : undefined;
   const canGoNext = currentStep.kind !== "input" || hasIncome;
   const isLastStep = stepIndex === steps.length - 1;
+  const activeDrilldownRoot = activeDrilldownPath[0];
+  const activeDrilldownTone = activeDrilldownRoot
+    ? getFunctionTone(activeDrilldownRoot)
+    : currentStep.tone;
 
   useEffect(() => {
     document.documentElement.dataset.storyHydrated = "true";
@@ -489,6 +642,11 @@ export function BudgetWrappedFlow() {
   }, []);
 
   function goNext() {
+    if (activeDrilldownView) {
+      setActiveDrilldownPath([]);
+      return;
+    }
+
     if (!canGoNext) {
       return;
     }
@@ -501,29 +659,59 @@ export function BudgetWrappedFlow() {
   }
 
   function goBack() {
+    if (activeDrilldownPath.length > 1) {
+      setActiveDrilldownPath((current) => current.slice(0, -1));
+      return;
+    }
+
+    if (activeDrilldownPath.length === 1) {
+      setActiveDrilldownPath([]);
+      return;
+    }
+
     setStepIndex((current) => Math.max(current - 1, 0));
   }
 
   function restart() {
     setStepIndex(0);
     setIncomeInput("");
+    setActiveDrilldownPath([]);
+  }
+
+  function openDrilldown(slug: BudgetFunctionSlug) {
+    if (getBudgetDrilldownCategory(slug)) {
+      setActiveDrilldownPath([slug]);
+    }
+  }
+
+  function openNestedDrilldown(id: string) {
+    setActiveDrilldownPath((current) => [...current, id]);
   }
 
   return (
     <StoryFrame
-      currentKind={currentStep.kind}
+      currentKind={activeDrilldownView ? "drilldown" : currentStep.kind}
       currentStep={stepIndex}
-      surface={currentStep.surface}
-      tone={currentStep.tone}
+      surface={activeDrilldownView ? "paper" : currentStep.surface}
+      tone={activeDrilldownView ? activeDrilldownTone : currentStep.tone}
       totalSteps={steps.length}
-      canGoBack={stepIndex > 0}
-      canGoNext={canGoNext && !isLastStep}
-      nextLabel={stepIndex === 0 ? "Start" : "Next"}
+      canGoBack={activeDrilldownPath.length > 0 || stepIndex > 0}
+      canGoNext={activeDrilldownView ? true : canGoNext && !isLastStep}
+      nextLabel={
+        activeDrilldownView ? "Done" : stepIndex === 0 ? "Start" : "Next"
+      }
       onBack={goBack}
       onNext={goNext}
       onRestart={restart}
     >
-      {currentStep.kind === "intro" && (
+      {activeDrilldownView && (
+        <BudgetDrilldownCard
+          view={activeDrilldownView}
+          onSelectChild={openNestedDrilldown}
+        />
+      )}
+
+      {!activeDrilldownView && currentStep.kind === "intro" && (
         <section className="story-moment story-moment-center">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h1 className="story-title">{currentStep.title}</h1>
@@ -537,7 +725,7 @@ export function BudgetWrappedFlow() {
         </section>
       )}
 
-      {currentStep.kind === "input" && (
+      {!activeDrilldownView && currentStep.kind === "input" && (
         <section className="story-moment">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h2 className="story-title">{currentStep.title}</h2>
@@ -569,7 +757,7 @@ export function BudgetWrappedFlow() {
         </section>
       )}
 
-      {currentStep.kind === "tax" && (
+      {!activeDrilldownView && currentStep.kind === "tax" && (
         <section className="story-moment story-moment-center">
           <TaxEstimateMark />
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
@@ -590,7 +778,7 @@ export function BudgetWrappedFlow() {
         </section>
       )}
 
-      {currentStep.kind === "allocation" && (
+      {!activeDrilldownView && currentStep.kind === "allocation" && (
         <section className="story-moment story-moment-allocation">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h2 className="story-title">{currentStep.title}</h2>
@@ -611,7 +799,7 @@ export function BudgetWrappedFlow() {
         </section>
       )}
 
-      {currentStep.kind === "category" && currentCategoryStory && (
+      {!activeDrilldownView && currentStep.kind === "category" && currentCategoryStory && (
         <section className="story-moment story-moment-center">
           <div
             className={`category-hit tone-${currentCategoryStory.meta.tone}`}
@@ -644,6 +832,13 @@ export function BudgetWrappedFlow() {
               )}{" "}
               of the Budget function mix
             </p>
+            <button
+              type="button"
+              className="story-detail-button"
+              onClick={() => openDrilldown(currentCategoryStory.allocation.slug)}
+            >
+              Open breakdown
+            </button>
             {spotlightSummary.allocations.some(
               (spotlight) =>
                 spotlight.parentFunctionSlug ===
@@ -670,7 +865,7 @@ export function BudgetWrappedFlow() {
         </section>
       )}
 
-      {currentStep.kind === "spotlight" && currentSpotlightStory && (
+      {!activeDrilldownView && currentStep.kind === "spotlight" && currentSpotlightStory && (
         <section className="story-moment story-moment-center">
           <div
             className={`category-hit spotlight-hit tone-${currentSpotlightStory.meta.tone}`}
@@ -703,14 +898,17 @@ export function BudgetWrappedFlow() {
         </section>
       )}
 
-      {currentStep.kind === "summary" && (
+      {!activeDrilldownView && currentStep.kind === "summary" && (
         <section className="story-moment story-moment-summary">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h2 className="story-title">{currentStep.title}</h2>
           <p className="summary-total">
             {formatCurrency(taxEstimate.totalEstimatedTax)}
           </p>
-          <SummaryRankedBarChart summary={allocationSummary} />
+          <SummaryRankedBarChart
+            summary={allocationSummary}
+            onFunctionSelect={openDrilldown}
+          />
           <p className="story-caveat">
             Estimate only. This is a proportional Budget map, not a record of
             actual spending.

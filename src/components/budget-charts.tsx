@@ -3,6 +3,7 @@ import type {
   BudgetFunctionAllocation,
   SpotlightAllocation,
 } from "@/lib/allocation/model";
+import type { BudgetFunctionSlug } from "@/lib/budget/model";
 import type { CSSProperties } from "react";
 import {
   buildAllocationChartSegments,
@@ -228,40 +229,67 @@ export function SpotlightMarkerChart({
 export function SummaryRankedBarChart({
   summary,
   maxRows = 7,
+  onFunctionSelect,
 }: {
   summary: BudgetAllocationSummary;
   maxRows?: number;
+  onFunctionSelect?: (slug: BudgetFunctionSlug) => void;
 }) {
   const rows = buildSummaryChartRows(summary, maxRows);
   const maxShare = Math.max(...rows.map((row) => row.shareOfTotal), 0);
+  const isInteractive = Boolean(onFunctionSelect);
 
   return (
     <div
       className="summary-chart"
-      role="img"
+      role={isInteractive ? "group" : "img"}
       aria-label={`Final summary bar chart: additive Budget functions sum to ${formatCurrency(
         summary.inputTaxAmount,
       )}. Non-additive spotlights are excluded from this total.`}
     >
-      <div className="summary-chart-rows" aria-hidden="true">
-        {rows.map((row, index) => (
-          <div
-            key={row.id}
-            className={`summary-chart-row chart-tone-${row.tone}`}
-            style={{ "--row-index": index } as CSSProperties}
-          >
-            <div className="summary-chart-row-top">
-              <span>{row.label}</span>
-              <strong>{formatCurrency(row.amount)}</strong>
+      <div className="summary-chart-rows" aria-hidden={!isInteractive}>
+        {rows.map((row, index) => {
+          const selectableSlug =
+            row.sourceSlugs.length === 1 ? row.sourceSlugs[0] : null;
+          const canSelect = Boolean(selectableSlug && onFunctionSelect);
+          const content = (
+            <>
+              <div className="summary-chart-row-top">
+                <span>{row.label}</span>
+                <strong>{formatCurrency(row.amount)}</strong>
+              </div>
+              <div className="summary-chart-track">
+                <span
+                  className={`summary-chart-fill chart-fill-${row.tone}`}
+                  style={{
+                    width: `${getBarWidth(row.shareOfTotal, maxShare)}%`,
+                  }}
+                />
+              </div>
+            </>
+          );
+
+          return canSelect && selectableSlug ? (
+            <button
+              key={row.id}
+              type="button"
+              className={`summary-chart-row chart-tone-${row.tone}`}
+              style={{ "--row-index": index } as CSSProperties}
+              onClick={() => onFunctionSelect?.(selectableSlug)}
+              aria-label={`Open ${row.label} breakdown`}
+            >
+              {content}
+            </button>
+          ) : (
+            <div
+              key={row.id}
+              className={`summary-chart-row chart-tone-${row.tone}`}
+              style={{ "--row-index": index } as CSSProperties}
+            >
+              {content}
             </div>
-            <div className="summary-chart-track">
-              <span
-                className={`summary-chart-fill chart-fill-${row.tone}`}
-                style={{ width: `${getBarWidth(row.shareOfTotal, maxShare)}%` }}
-              />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <span className="sr-only">
         {rows

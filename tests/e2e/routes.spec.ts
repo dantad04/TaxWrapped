@@ -95,6 +95,22 @@ test.describe("mobile story flow", () => {
 
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Defence" })).toBeVisible();
+    await page.getByRole("button", { name: "Open breakdown" }).click();
+    await expect(page.getByText("to Defence.")).toBeVisible();
+    await expect(page.getByText("Workforce", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Defence breakdown: Defence Portfolio Budget Statements 2025-26"),
+    ).toBeVisible();
+    await page
+      .getByRole("button", {
+        name: "Open Capability Acquisition Program breakdown",
+      })
+      .click();
+    await expect(
+      page.getByText("Military Equipment Acquisition Program"),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Defence" })).toBeVisible();
 
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(
@@ -127,7 +143,7 @@ test.describe("mobile story flow", () => {
       page.getByRole("heading", { name: "Your illustrative receipt" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("img", { name: /Final summary bar chart/ }),
+      page.getByRole("group", { name: /Final summary bar chart/ }),
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Sample share preview" }),
