@@ -45,6 +45,9 @@ button {
 }
 
 .story-shell {
+  position: relative;
+  isolation: isolate;
+  height: 100svh;
   min-height: 100svh;
   background:
     linear-gradient(90deg, rgba(46, 85, 255, 0.28) 0 0.38rem, transparent 0.38rem 2.15rem),
@@ -53,6 +56,21 @@ button {
   place-items: center;
   padding: clamp(0.5rem, 1.7vw, 1rem);
   overflow: hidden;
+}
+
+.story-shell::before,
+.story-shell::after {
+  content: none;
+}
+
+.story-desktop-stage {
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.story-desktop-rail {
+  display: none;
 }
 
 .story-card {
@@ -71,7 +89,7 @@ button {
   box-shadow: 0 1.5rem 5.5rem rgba(0, 0, 0, 0.62);
   padding: clamp(1rem, 4vw, 1.65rem);
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
 }
 
 .story-tone-red {
@@ -944,6 +962,7 @@ button {
 }
 
 .story-card-drilldown .story-content {
+  align-content: center;
   align-items: stretch;
   padding-block: clamp(0.45rem, 1.8svh, 1.05rem);
 }
@@ -951,8 +970,8 @@ button {
 .drilldown-card {
   display: grid;
   align-content: start;
-  gap: clamp(0.58rem, 2svh, 0.9rem);
-  max-height: calc(100svh - 10.75rem);
+  gap: clamp(0.42rem, 1.4svh, 0.68rem);
+  max-height: calc(100svh - 9.75rem);
   min-height: 0;
   overflow: hidden;
   padding: 0.08rem 0.16rem 0.25rem;
@@ -961,7 +980,7 @@ button {
 .drilldown-donut {
   position: relative;
   justify-self: center;
-  width: clamp(6.1rem, 28vw, 8.4rem);
+  width: clamp(5rem, 22vw, 7rem);
   aspect-ratio: 1;
   border-radius: 50%;
   background: var(--drilldown-chart);
@@ -981,15 +1000,19 @@ button {
 .drilldown-headline {
   display: grid;
   justify-items: center;
-  gap: clamp(0.18rem, 0.7svh, 0.34rem);
+  gap: clamp(0.12rem, 0.45svh, 0.24rem);
+  min-width: 0;
   text-align: center;
 }
 
 .drilldown-headline p,
 .drilldown-headline span {
-  font-size: clamp(1.45rem, 5.7vw, 2.25rem);
+  max-width: 100%;
+  min-width: 0;
+  font-size: clamp(1.18rem, 4.8vw, 1.8rem);
   line-height: 0.95;
   font-weight: 1000;
+  text-wrap: balance;
 }
 
 .drilldown-headline strong {
@@ -1005,7 +1028,7 @@ button {
 .drilldown-bars-shell {
   position: relative;
   min-height: 0;
-  max-height: clamp(8.8rem, 31svh, 13.75rem);
+  max-height: clamp(8rem, 22svh, 10.8rem);
 }
 
 .drilldown-bars {
@@ -1099,7 +1122,10 @@ button {
 }
 
 .drilldown-row-text small {
-  display: block;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   color: color-mix(in srgb, var(--story-ink) 58%, transparent);
   font-size: clamp(0.66rem, 2.45vw, 0.78rem);
   line-height: 1.08;
@@ -1116,22 +1142,51 @@ button {
 
 .drilldown-source {
   color: color-mix(in srgb, var(--story-ink) 72%, transparent);
-  font-size: clamp(0.66rem, 2.45vw, 0.78rem);
+  font-size: clamp(0.6rem, 2.2vw, 0.72rem);
   line-height: 1.14;
   font-weight: 850;
 }
 
 .drilldown-source-muted {
-  margin-top: -0.42rem;
+  margin-top: -0.36rem;
   color: color-mix(in srgb, var(--story-ink) 55%, transparent);
-  font-size: clamp(0.61rem, 2.2vw, 0.72rem);
+  font-size: clamp(0.56rem, 2vw, 0.66rem);
 }
 
 .drilldown-hint {
   color: color-mix(in srgb, var(--story-ink) 52%, transparent);
-  font-size: clamp(0.74rem, 2.8vw, 0.86rem);
+  font-size: clamp(0.62rem, 2.25vw, 0.76rem);
   line-height: 1.16;
   font-weight: 800;
+}
+
+@media (max-width: 460px), (min-width: 900px) {
+  .drilldown-bars-shell {
+    max-height: 6.15rem;
+  }
+
+  .drilldown-bars {
+    margin-top: 0;
+    padding-bottom: 0.45rem;
+  }
+
+  .drilldown-scroll-affordance {
+    height: 0.95rem;
+  }
+
+  .drilldown-row {
+    grid-template-columns: minmax(2.8rem, 30%) auto minmax(0, 1fr);
+    gap: 0.38rem;
+  }
+
+  .drilldown-bar-track {
+    height: clamp(0.9rem, 3.2vw, 1.12rem);
+    border-width: 2px;
+  }
+
+  .drilldown-row-text small {
+    display: none;
+  }
 }
 
 .chart-tone-magenta,
@@ -1454,6 +1509,7 @@ button.summary-chart-row {
 }
 
 .story-transparency-links a:focus-visible,
+.story-desktop-links a:focus-visible,
 .transparency-nav a:focus-visible,
 .source-card a:focus-visible {
   outline: 4px solid var(--story-green);
@@ -1968,6 +2024,189 @@ button.summary-chart-row {
 @media (min-width: 768px) {
   .story-card {
     min-height: min(52rem, calc(100svh - 2.4rem));
+  }
+}
+
+@media (min-width: 900px) {
+  .story-shell {
+    place-items: stretch;
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+    background:
+      linear-gradient(90deg, rgba(46, 85, 255, 0.32) 0 0.38rem, transparent 0.38rem 2.15rem),
+      linear-gradient(115deg, rgba(223, 31, 38, 0.24) 0 14%, transparent 14.2% 100%),
+      linear-gradient(180deg, #080808 0%, #171719 52%, #080808 100%);
+  }
+
+  .story-shell::before {
+    content: "BUDGET";
+    position: absolute;
+    right: -0.34em;
+    bottom: 0.02em;
+    z-index: -1;
+    color: rgba(251, 250, 245, 0.055);
+    font-size: clamp(8rem, 17vw, 15rem);
+    font-style: italic;
+    font-weight: 1000;
+    line-height: 0.72;
+    letter-spacing: 0;
+    pointer-events: none;
+    transform: rotate(-4deg);
+    white-space: nowrap;
+  }
+
+  .story-shell::after {
+    content: "";
+    position: absolute;
+    top: 8%;
+    left: clamp(2rem, 8vw, 8rem);
+    z-index: -1;
+    width: clamp(10rem, 22vw, 20rem);
+    height: clamp(3rem, 8vw, 5.5rem);
+    background: var(--story-green);
+    box-shadow: -1rem 1rem 0 var(--story-magenta);
+    opacity: 0.72;
+    pointer-events: none;
+    transform: rotate(16deg) skewX(-12deg);
+  }
+
+  .story-desktop-stage {
+    --desktop-card-height: min(46.5rem, calc(100svh - clamp(1.5rem, 4vw, 3rem)));
+    --desktop-card-width: min(31.5rem, calc(var(--desktop-card-height) * 0.68));
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns:
+      minmax(13rem, 19rem)
+      var(--desktop-card-width)
+      minmax(13rem, 19rem);
+    gap: clamp(1.25rem, 3vw, 2.4rem);
+    align-items: center;
+    justify-content: center;
+    place-items: stretch;
+  }
+
+  .story-desktop-stage::after {
+    content: "";
+    grid-column: 3;
+    align-self: stretch;
+    justify-self: stretch;
+    min-height: min(35rem, calc(100svh - 4rem));
+    border-inline: 3px solid rgba(251, 250, 245, 0.18);
+    background:
+      linear-gradient(180deg, transparent, rgba(251, 250, 245, 0.06)),
+      linear-gradient(90deg, rgba(187, 51, 182, 0.5) 0 0.32rem, transparent 0.32rem 1.35rem);
+    transform: skewY(-4deg);
+  }
+
+  .story-card {
+    grid-column: 2;
+    width: var(--desktop-card-width);
+    height: var(--desktop-card-height);
+    min-height: 0;
+    border-radius: clamp(2.25rem, 5svh, 3.4rem);
+    padding: clamp(1rem, 2svh, 1.45rem);
+  }
+
+  .story-card-intro .story-content {
+    padding-top: clamp(3.4rem, 6svh, 4.6rem);
+    padding-bottom: clamp(12rem, 21svh, 14rem);
+  }
+
+  .story-card-intro .story-moment {
+    gap: clamp(0.72rem, 1.8svh, 1.08rem);
+  }
+
+  .story-card-drilldown .drilldown-bars-shell {
+    max-height: 7.5rem;
+  }
+
+  .story-desktop-rail {
+    grid-column: 1;
+    display: grid;
+    align-content: center;
+    justify-self: stretch;
+    gap: clamp(0.9rem, 2.2svh, 1.35rem);
+    min-width: 0;
+    color: #fbfaf5;
+  }
+
+  .story-desktop-label {
+    color: #fbfaf5;
+    font-size: clamp(2rem, 3.3vw, 3.7rem);
+    font-weight: 1000;
+    line-height: 0.82;
+    text-shadow: 0.055em 0.055em 0 #080808;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  .story-desktop-meter {
+    display: grid;
+    gap: 0.42rem;
+    border-block: 3px solid rgba(251, 250, 245, 0.32);
+    padding-block: 0.9rem;
+  }
+
+  .story-desktop-meter span {
+    color: rgba(251, 250, 245, 0.72);
+    font-size: 0.68rem;
+    font-weight: 950;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .story-desktop-meter strong {
+    color: var(--story-accent);
+    font-size: clamp(2.2rem, 4vw, 4.4rem);
+    font-weight: 1000;
+    line-height: 0.82;
+    -webkit-text-stroke: 1px #fbfaf5;
+    text-shadow: 0.04em 0.04em 0 #080808;
+  }
+
+  .story-desktop-progress {
+    height: 0.48rem;
+    overflow: hidden;
+    border: 2px solid rgba(251, 250, 245, 0.72);
+    border-radius: 999px;
+    background: rgba(251, 250, 245, 0.1);
+  }
+
+  .story-desktop-progress span {
+    display: block;
+    height: 100%;
+    background: var(--story-accent);
+  }
+
+  .story-desktop-caveat {
+    max-width: 17rem;
+    color: rgba(251, 250, 245, 0.78);
+    font-size: clamp(0.92rem, 1.2vw, 1.08rem);
+    font-weight: 820;
+    line-height: 1.18;
+    text-wrap: balance;
+  }
+
+  .story-desktop-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.42rem;
+    max-width: 17rem;
+  }
+
+  .story-desktop-links a {
+    border: 2px solid rgba(251, 250, 245, 0.72);
+    border-radius: 999px;
+    padding: 0.42rem 0.62rem;
+    color: inherit;
+    background: color-mix(in srgb, var(--story-accent) 18%, transparent);
+    font-size: 0.68rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
   }
 }
 

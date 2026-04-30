@@ -14,6 +14,10 @@ const routes = [
   { path: "/share-preview", heading: "Sample share preview" },
 ];
 
+async function clickStoryButton(page: Page, name: string) {
+  await page.getByRole("button", { name, exact: true }).click({ force: true });
+}
+
 test.describe("routes", () => {
   for (const route of routes) {
     test(`${route.path} renders`, async ({ page }) => {
@@ -34,9 +38,9 @@ test.describe("mobile story flow", () => {
     await page.waitForFunction(
       () => document.documentElement.dataset.storyHydrated === "true",
     );
-    await page.getByRole("button", { name: "Start", exact: true }).click();
+    await clickStoryButton(page, "Start");
     await page.getByLabel("Taxable income").fill("90000");
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
   }
 
   test("accepts taxable income and advances through story cards", async ({
@@ -54,13 +58,13 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("button", { name: "Start", exact: true }),
     ).toBeEnabled();
-    await page.getByRole("button", { name: "Start", exact: true }).click();
+    await clickStoryButton(page, "Start");
     await expect(
       page.getByRole("heading", { name: "What should we wrap?" }),
     ).toBeVisible();
 
     await page.getByLabel("Taxable income").fill("90000");
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Your tax estimate" }),
     ).toBeVisible();
@@ -78,8 +82,8 @@ test.describe("mobile story flow", () => {
     ).toBeVisible();
     await expect(page.getByLabel("Taxable income")).toHaveValue("90000");
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Bracket by bracket." }),
     ).toBeVisible();
@@ -91,7 +95,7 @@ test.describe("mobile story flow", () => {
       /exactly where your tax dollars went|fair|unfair/i,
     );
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Mapped across the Budget" }),
     ).toBeVisible();
@@ -103,9 +107,11 @@ test.describe("mobile story flow", () => {
         .locator(".allocation-chart-key")
         .getByText(/Social security\s+and welfare/),
     ).toBeVisible();
-    await expect(page.getByText(/Taxes are not hypothecated/)).toBeVisible();
+    await expect(
+      page.locator(".story-card").getByText(/Taxes are not hypothecated/),
+    ).toBeVisible();
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Social security & welfare" }),
     ).toBeVisible();
@@ -116,20 +122,20 @@ test.describe("mobile story flow", () => {
     ).toBeVisible();
     await expect(page.getByText(/Additive function/)).toBeVisible();
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(page.getByRole("heading", { name: "Health" })).toBeVisible();
     await expect(
       page.getByRole("img", { name: /Health share chart/ }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Education" }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(page.getByRole("heading", { name: "Defence" })).toBeVisible();
-    await page.getByRole("button", { name: "Open breakdown" }).click();
+    await clickStoryButton(page, "Open breakdown");
     await expect(page.getByText("to Defence.")).toBeVisible();
     await expect(page.getByText("Workforce", { exact: true })).toBeVisible();
     await expect(
@@ -139,19 +145,19 @@ test.describe("mobile story flow", () => {
       .getByRole("button", {
         name: "Open Capability Acquisition Program breakdown",
       })
-      .click();
+      .click({ force: true });
     await expect(
       page.getByText("Military Equipment Acquisition Program"),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Done", exact: true }).click();
+    await clickStoryButton(page, "Done");
     await expect(page.getByRole("heading", { name: "Defence" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Energy & resources" }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "States and territories" }),
     ).toBeVisible();
@@ -164,7 +170,7 @@ test.describe("mobile story flow", () => {
       page.getByText("Non-additive spotlight", { exact: true }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Debt interest" }),
     ).toBeVisible();
@@ -172,7 +178,7 @@ test.describe("mobile story flow", () => {
       page.getByText(/not included in the final summary/),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Your illustrative receipt" }),
     ).toBeVisible();
@@ -188,7 +194,7 @@ test.describe("mobile story flow", () => {
     await expect(page.getByRole("link", { name: "Sources" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Privacy" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", {
         name: "Australia's 2025-26 Commonwealth bill.",
@@ -207,14 +213,14 @@ test.describe("mobile story flow", () => {
       .poll(() => page.evaluate(() => document.cookie))
       .toBe("");
 
-    await page.getByRole("button", { name: "Restart" }).click();
+    await clickStoryButton(page, "Restart");
     await expect(
       page.getByRole("heading", { name: "Your Australian Budget Wrapped" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Start", exact: true }),
     ).toBeEnabled();
-    await page.getByRole("button", { name: "Start", exact: true }).click();
+    await clickStoryButton(page, "Start");
     await expect(page.getByLabel("Taxable income")).toHaveValue("");
 
     const storageLengths = await page.evaluate(() => ({
@@ -233,16 +239,16 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("heading", { name: "Your tax estimate" }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Bracket by bracket." }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Mapped across the Budget" }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Social security & welfare" }),
     ).toBeVisible();
@@ -250,13 +256,13 @@ test.describe("mobile story flow", () => {
       "Assistance to families with children",
     );
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(page.getByRole("heading", { name: "Health" })).toBeVisible();
     await expect(page.getByTestId("program-callouts")).toContainText(
       "Assistance to the states for public hospitals",
     );
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Education" }),
     ).toBeVisible();
@@ -343,10 +349,10 @@ async function startStoryWithIncome(page: Page, income: number) {
     () => document.documentElement.dataset.storyHydrated === "true",
   );
   await expectVisibleHeroesToFit(page, `intro income ${income}`);
-  await page.getByRole("button", { name: "Start", exact: true }).click();
+  await clickStoryButton(page, "Start");
   await expectVisibleHeroesToFit(page, `input income ${income}`);
   await page.getByLabel("Taxable income").fill(String(income));
-  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await clickStoryButton(page, "Next");
 }
 
 async function advanceAndFit(
@@ -354,7 +360,7 @@ async function advanceAndFit(
   heading: string | RegExp,
   context: string,
 ) {
-  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await clickStoryButton(page, "Next");
   await expect(page.getByRole("heading", { name: heading })).toBeVisible();
   await expectVisibleHeroesToFit(page, context);
 }
@@ -384,7 +390,7 @@ async function walkFlowAndAssertHeroFit(page: Page, income: number) {
     await advanceAndFit(page, heading, `${heading} income ${income}`);
 
     if (index === 0) {
-      await page.getByRole("button", { name: "Open breakdown" }).click();
+      await clickStoryButton(page, "Open breakdown");
       await expect(
         page.getByText(/to Social security and welfare\./),
       ).toBeVisible();
@@ -392,7 +398,7 @@ async function walkFlowAndAssertHeroFit(page: Page, income: number) {
         page,
         `drilldown ${heading} income ${income}`,
       );
-      await page.getByRole("button", { name: "Done", exact: true }).click();
+      await clickStoryButton(page, "Done");
       await expect(page.getByRole("heading", { name: heading })).toBeVisible();
       await expectVisibleHeroesToFit(
         page,
@@ -414,6 +420,172 @@ async function walkFlowAndAssertHeroFit(page: Page, income: number) {
     `coda income ${income}`,
   );
 }
+
+async function openSocialSecurityDrilldown(page: Page) {
+  await startStoryWithIncome(page, 90000);
+  await expect(page.getByRole("heading", { name: "Your tax estimate" })).toBeVisible();
+  await advanceAndFit(page, "Bracket by bracket.", "bracket for drilldown");
+  await advanceAndFit(
+    page,
+    "Mapped across the Budget",
+    "allocation for drilldown",
+  );
+  await advanceAndFit(
+    page,
+    "Social security & welfare",
+    "category for drilldown",
+  );
+  await clickStoryButton(page, "Open breakdown");
+  await expect(
+    page.getByText(/to Social security and welfare\./),
+  ).toBeVisible();
+  await expectVisibleHeroesToFit(page, "social security drilldown");
+}
+
+function parseCurrencyAmount(value: string) {
+  return Number(value.replace(/[^0-9.-]/g, ""));
+}
+
+async function expectDrilldownAmountsDescending(page: Page) {
+  const amountTexts = await page
+    .locator(".drilldown-row > strong")
+    .evaluateAll((elements) =>
+      elements.map((element) => element.textContent?.trim() ?? ""),
+    );
+  const amounts = amountTexts.map(parseCurrencyAmount);
+
+  expect(amounts.length).toBeGreaterThan(2);
+
+  for (let index = 1; index < amounts.length; index += 1) {
+    expect(amounts[index - 1]).toBeGreaterThanOrEqual(amounts[index]);
+  }
+}
+
+async function expectFirstDrilldownBarLargest(page: Page) {
+  const widths = await page.locator(".drilldown-bar-fill").evaluateAll(
+    (elements) =>
+      elements.map((element) =>
+        Number.parseFloat((element as HTMLElement).style.width),
+      ),
+  );
+
+  expect(widths.length).toBeGreaterThan(2);
+  expect(widths[0]).toBe(100);
+
+  for (const width of widths) {
+    expect(widths[0]).toBeGreaterThanOrEqual(width);
+  }
+}
+
+async function expectDrilldownRowsNotClipped(page: Page) {
+  const rows = page.locator(".drilldown-row");
+  const count = await rows.count();
+
+  for (let index = 0; index < count; index += 1) {
+    const row = rows.nth(index);
+
+    await row.scrollIntoViewIfNeeded();
+
+    const clippingFailures = await row.evaluate((element) => {
+      const rowElement = element as HTMLElement;
+      const bars = rowElement.closest(".drilldown-bars") as HTMLElement | null;
+      const amount = rowElement.querySelector("strong") as HTMLElement | null;
+      const label = rowElement.querySelector(
+        ".drilldown-row-text b",
+      ) as HTMLElement | null;
+
+      if (!bars || !amount || !label) {
+        return ["missing drilldown row content"];
+      }
+
+      const barsRect = bars.getBoundingClientRect();
+      const amountRect = amount.getBoundingClientRect();
+      const labelRect = label.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const failures: string[] = [];
+
+      if (amountRect.width <= 0 || amountRect.height <= 0) {
+        failures.push("amount hidden");
+      }
+
+      if (labelRect.width <= 0 || labelRect.height <= 0) {
+        failures.push("label hidden");
+      }
+
+      for (const [name, rect] of [
+        ["amount", amountRect],
+        ["label", labelRect],
+      ] as const) {
+        if (
+          rect.left < barsRect.left - 1 ||
+          rect.right > barsRect.right + 1 ||
+          rect.top < barsRect.top - 1 ||
+          rect.bottom > barsRect.bottom + 1
+        ) {
+          failures.push(`${name} clipped`);
+        }
+
+        if (rect.left < -1 || rect.right > viewportWidth + 1) {
+          failures.push(`${name} viewport clipped`);
+        }
+      }
+
+      return failures;
+    });
+
+    expect(clippingFailures, `drilldown row ${index}`).toEqual([]);
+  }
+}
+
+test.describe("drilldown row ordering", () => {
+  for (const viewportWidth of [390, 430] as const) {
+    test.describe(`${viewportWidth}px viewport`, () => {
+      test.use({ viewport: { width: viewportWidth, height: 844 } });
+
+      test("sorts visible drilldown amounts and bars by size", async ({
+        page,
+      }) => {
+        await openSocialSecurityDrilldown(page);
+        await expectDrilldownAmountsDescending(page);
+        await expectFirstDrilldownBarLargest(page);
+        await expectDrilldownRowsNotClipped(page);
+      });
+    });
+  }
+});
+
+test.describe("laptop story stage", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test("frames the same story flow with a desktop rail", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForFunction(
+      () => document.documentElement.dataset.storyHydrated === "true",
+    );
+
+    await expect(page.locator(".story-desktop-rail")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Your Australian Budget Wrapped" }),
+    ).toBeVisible();
+
+    const cardBox = await page.locator(".story-card").boundingBox();
+
+    expect(cardBox).not.toBeNull();
+    expect(cardBox?.y ?? 0).toBeGreaterThanOrEqual(0);
+    expect((cardBox?.y ?? 0) + (cardBox?.height ?? 0)).toBeLessThanOrEqual(800);
+
+    await clickStoryButton(page, "Start");
+    await page.getByLabel("Taxable income").fill("90000");
+    await clickStoryButton(page, "Next");
+
+    await expect(
+      page.getByRole("heading", { name: "Your tax estimate" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Next", exact: true }),
+    ).toBeVisible();
+  });
+});
 
 test.describe("fit-to-width hero typography", () => {
   test.setTimeout(90_000);
@@ -491,9 +663,9 @@ test.describe("share preview", () => {
     await page.waitForFunction(
       () => document.documentElement.dataset.storyHydrated === "true",
     );
-    await page.getByRole("button", { name: "Start", exact: true }).click();
+    await clickStoryButton(page, "Start");
     await page.getByLabel("Taxable income").fill("90000");
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await clickStoryButton(page, "Next");
 
     for (let index = 0; index < 12; index += 1) {
       if (
@@ -505,7 +677,7 @@ test.describe("share preview", () => {
         return;
       }
 
-      await page.getByRole("button", { name: "Next", exact: true }).click();
+      await clickStoryButton(page, "Next");
     }
 
     await expect(

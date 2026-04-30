@@ -893,73 +893,120 @@ function StoryFrame({
   const colour = storyPalette[tone];
   const surfaceClasses = storySurfaces[surface];
   const progress = ((currentStep + 1) / totalSteps) * 100;
+  const cardRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (currentKind !== "drilldown") {
+      return;
+    }
+
+    const card = cardRef.current;
+
+    if (!card) {
+      return;
+    }
+
+    if (typeof card.scrollTo === "function") {
+      card.scrollTo({ top: 0, left: 0 });
+      return;
+    }
+
+    card.scrollTop = 0;
+    card.scrollLeft = 0;
+  }, [currentKind]);
 
   return (
     <main className="story-shell">
-      <section
-        className={`story-card story-card-${currentKind} story-tone-${tone} ${surfaceClasses.surface} ${surfaceClasses.ink}`}
-        data-step={currentKind}
-        style={
-          {
-            "--story-surface-colour":
-              surface === "charcoal"
-                ? "var(--story-charcoal)"
-                : "var(--story-paper)",
-          } as CSSProperties
-        }
-      >
-        <WavyLines />
-        <PatternBlock />
-        <div className={`story-slab ${colour.accent} ${colour.glow}`} />
-        {currentKind === "intro" && <PosterYear />}
-
-        <header className="story-topbar">
-          <span>Australian Budget Wrapped</span>
-          <span>
-            {currentStep + 1}/{totalSteps}
-          </span>
-        </header>
-        <div className="story-progress" aria-hidden="true">
-          <span style={{ width: `${progress}%` }} />
-        </div>
-
-        <div key={currentStep} className="story-content">
-          {children}
-        </div>
-
-        <nav
-          className={`story-controls ${
-            currentKind === "intro" ? "story-controls-intro" : ""
-          }`}
-          aria-label="Story controls"
+      <div className={`story-desktop-stage story-tone-${tone}`}>
+        <aside className="story-desktop-rail" aria-label="Story context">
+          <p className="story-desktop-label">Australian Budget Wrapped</p>
+          <div className="story-desktop-meter">
+            <span>Step</span>
+            <strong>
+              {currentStep + 1}/{totalSteps}
+            </strong>
+            <div className="story-desktop-progress" aria-hidden="true">
+              <span style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+          <p className="story-desktop-caveat">
+            Illustrative estimate. Taxes are not hypothecated.
+          </p>
+          <nav
+            className="story-desktop-links"
+            aria-label="Desktop transparency links"
+          >
+            <Link href="/methodology">Methodology</Link>
+            <Link href="/sources">Sources</Link>
+            <Link href="/privacy">Privacy</Link>
+          </nav>
+        </aside>
+        <section
+          ref={cardRef}
+          className={`story-card story-card-${currentKind} story-tone-${tone} ${surfaceClasses.surface} ${surfaceClasses.ink}`}
+          data-step={currentKind}
+          style={
+            {
+              "--story-surface-colour":
+                surface === "charcoal"
+                  ? "var(--story-charcoal)"
+                  : "var(--story-paper)",
+            } as CSSProperties
+          }
         >
-          <button
-            type="button"
-            className="story-icon-button"
-            onClick={onBack}
-            disabled={!canGoBack}
-            aria-label="Back"
+          <WavyLines />
+          <PatternBlock />
+          <div className={`story-slab ${colour.accent} ${colour.glow}`} />
+          {currentKind === "intro" && <PosterYear />}
+
+          <header className="story-topbar">
+            <span>Australian Budget Wrapped</span>
+            <span>
+              {currentStep + 1}/{totalSteps}
+            </span>
+          </header>
+          <div className="story-progress" aria-hidden="true">
+            <span style={{ width: `${progress}%` }} />
+          </div>
+
+          <div key={currentStep} className="story-content">
+            {children}
+          </div>
+
+          <nav
+            className={`story-controls ${
+              currentKind === "intro" ? "story-controls-intro" : ""
+            }`}
+            aria-label="Story controls"
           >
-            ←
-          </button>
-          <button
-            type="button"
-            className="story-main-button"
-            onClick={onNext}
-            disabled={!canGoNext}
-          >
-            {nextLabel}
-          </button>
-          <button
-            type="button"
-            className="story-icon-button"
-            onClick={onRestart}
-            aria-label="Restart"
-          >
-            ↺
-          </button>
-        </nav>
-      </section>
+            <button
+              type="button"
+              className="story-icon-button"
+              onClick={onBack}
+              disabled={!canGoBack}
+              aria-label="Back"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              className="story-main-button"
+              onClick={onNext}
+              disabled={!canGoNext}
+            >
+              {nextLabel}
+            </button>
+            <button
+              type="button"
+              className="story-icon-button"
+              onClick={onRestart}
+              aria-label="Restart"
+            >
+              ↺
+            </button>
+          </nav>
+        </section>
+      </div>
     </main>
   );
 }

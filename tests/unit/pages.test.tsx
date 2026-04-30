@@ -103,7 +103,9 @@ describe("routes", () => {
   it("landing page contains the hypothecation disclaimer", () => {
     render(<Home />);
 
-    expect(screen.getByText(/Taxes are not hypothecated/)).toBeDefined();
+    expect(
+      screen.getAllByText(/Taxes are not hypothecated/).length,
+    ).toBeGreaterThan(0);
   });
 
   it("does not use browser storage in source files", async () => {

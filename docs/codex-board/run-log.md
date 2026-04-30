@@ -514,3 +514,47 @@ Result:
 
 - Ticket 016 implemented for human review.
 - No later ticket was started.
+
+## Ticket 017: Sort Drilldowns And Laptop Preview
+
+Status: Human Review
+
+Scope:
+
+- Sorted category drilldown view rows by computed contribution amount,
+  descending, with original source order preserved for equal computed values.
+- Kept raw Budget subcategory data in authored order and avoided in-place source
+  mutation.
+- Kept drilldown totals and proportional cent allocation unchanged; sorted rows
+  still reconcile to their parent category contribution.
+- Applied the sorted row output consistently to the visible drilldown list,
+  accessible row labels, conic chart slices, and visual bars.
+- Added a laptop/desktop presentation layer from the wide breakpoint up, with
+  the existing story card framed as the central object and a lightweight side
+  rail for product name, step progress, caveat, and policy links.
+- Preserved the same mobile route, story order, controls, tax calculation,
+  Budget facts, allocation logic, source registry, share-card/export logic,
+  storage posture, and analytics-free behaviour.
+- Added fresh design-review screenshots in
+  `docs/product/design-review/sorted-drilldown-laptop-preview/`.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- `npm run test:run -- tests/unit/budget-drilldown-data.test.ts` - passed
+  during implementation
+- `npm run typecheck` - passed during implementation
+- `npm run lint` - passed during implementation
+- `npm run validate` - failed once on the JSDOM `scrollTo` browser API, failed
+  once on duplicate hypothecation disclaimer text after adding the desktop rail,
+  failed once on an unsupported Playwright `reducedMotion` config option, then
+  passed after the targeted fixes
+- `npm run test:e2e -- --grep "mobile story flow|drilldown row ordering|renders a privacy-safe additive share card"`
+  - passed after the final mobile Back-flow adjustment
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 017 implemented for human review.
+- No later ticket was started.

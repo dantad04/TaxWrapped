@@ -68,23 +68,33 @@ function allocateChildrenByBasis(
     }
   }
 
-  return initial.map(({ child, index, floorCents }) => {
-    const amountCents = floorCents + (adjustedIndexes.get(index) ?? 0);
+  return initial
+    .map(({ child, index, floorCents }) => {
+      const amountCents = floorCents + (adjustedIndexes.get(index) ?? 0);
 
-    return {
-      id: child.id,
-      label: child.label,
-      amount: centsToAmount(amountCents),
-      amountCents,
-      budgetAmountM: child.amountM,
-      description: child.description,
-      source: child.source,
-      sourceUrl: child.sourceUrl,
-      sourceLocator: child.sourceLocator,
-      allocationMode: child.allocationMode,
-      hasChildren: Boolean(child.children?.length),
-    };
-  });
+      return {
+        row: {
+          id: child.id,
+          label: child.label,
+          amount: centsToAmount(amountCents),
+          amountCents,
+          budgetAmountM: child.amountM,
+          description: child.description,
+          source: child.source,
+          sourceUrl: child.sourceUrl,
+          sourceLocator: child.sourceLocator,
+          allocationMode: child.allocationMode,
+          hasChildren: Boolean(child.children?.length),
+        },
+        sourceIndex: index,
+      };
+    })
+    .sort(
+      (left, right) =>
+        right.row.amountCents - left.row.amountCents ||
+        left.sourceIndex - right.sourceIndex,
+    )
+    .map(({ row }) => row);
 }
 
 function allocateProgramCalloutsByBasis(
