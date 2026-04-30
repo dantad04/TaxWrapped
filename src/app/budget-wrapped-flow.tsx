@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AllocationStackedChart,
   CategoryShareChart,
@@ -30,6 +30,7 @@ import type {
   BudgetDrilldownView,
 } from "@/lib/budget/drilldown-model";
 import type { ChartTone } from "@/lib/charts/budget-chart-data";
+import { useCountUp } from "@/hooks/use-count-up";
 import { estimateAustralianTax2025_26 } from "@/lib/tax/australian-resident-2025-26";
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
@@ -203,6 +204,36 @@ function formatPercent(share: number) {
   return `${percentFormatter.format(share * 100)}%`;
 }
 
+function AnimatedCurrency({
+  amount,
+  as: Component = "span",
+  className,
+}: {
+  amount: number;
+  as?: "p" | "span" | "strong";
+  className?: string;
+}) {
+  const displayedAmount = useCountUp(amount, 700);
+  const finalValue = formatCurrency(amount);
+  const displayedValue = formatCurrency(displayedAmount);
+
+  return (
+    <Component
+      aria-label={finalValue}
+      className={className ? `${className} countup-currency` : "countup-currency"}
+      style={{ "--countup-width": `${finalValue.length}ch` } as CSSProperties}
+    >
+      <span
+        aria-hidden="true"
+        className="countup-currency-value"
+        suppressHydrationWarning
+      >
+        {displayedValue}
+      </span>
+    </Component>
+  );
+}
+
 function parseIncome(value: string) {
   if (value.trim() === "") {
     return null;
@@ -310,9 +341,48 @@ function BudgetDrilldownCard({
   view: BudgetDrilldownView;
   onSelectChild: (id: string) => void;
 }) {
+  const barsRef = useRef<HTMLDivElement>(null);
+  const [hasMoreBars, setHasMoreBars] = useState(false);
   const maxCents = Math.max(...view.rows.map((row) => row.amountCents), 0);
   const sourcePrefix = getSourcePrefix(view);
   const defenceBreakdownSource = view.node.id === "defence" ? view.rows[0]?.source : null;
+  const updateScrollAffordance = useCallback(() => {
+    const bars = barsRef.current;
+
+    if (!bars) {
+      setHasMoreBars(false);
+      return;
+    }
+
+    const remainingScroll = bars.scrollHeight - bars.scrollTop - bars.clientHeight;
+    setHasMoreBars(remainingScroll > 1);
+  }, []);
+
+  useEffect(() => {
+    const bars = barsRef.current;
+
+    if (!bars) {
+      return;
+    }
+
+    updateScrollAffordance();
+    bars.addEventListener("scroll", updateScrollAffordance, { passive: true });
+    window.addEventListener("resize", updateScrollAffordance);
+
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updateScrollAffordance);
+
+    resizeObserver?.observe(bars);
+    Array.from(bars.children).forEach((child) => resizeObserver?.observe(child));
+
+    return () => {
+      bars.removeEventListener("scroll", updateScrollAffordance);
+      window.removeEventListener("resize", updateScrollAffordance);
+      resizeObserver?.disconnect();
+    };
+  }, [updateScrollAffordance, view]);
 
   return (
     <section className="drilldown-card">
@@ -323,46 +393,56 @@ function BudgetDrilldownCard({
       />
       <div className="drilldown-headline">
         <p>You contributed</p>
-        <strong>{formatCurrency(view.contributionAmount)}</strong>
+        <AnimatedCurrency amount={view.contributionAmount} as="strong" />
         <span>to {view.node.label}.</span>
       </div>
-      <div className="drilldown-bars">
-        {view.rows.map((row, index) => {
-          const width =
-            maxCents > 0 ? Math.max(2, (row.amountCents / maxCents) * 100) : 0;
-          const colour = getDrilldownColour(index);
-          const content = (
-            <>
-              <span className="drilldown-bar-track">
-                <span
-                  className="drilldown-bar-fill"
-                  style={{ width: `${width}%`, backgroundColor: colour }}
-                />
-              </span>
-              <strong>{formatCurrency(row.amount)}</strong>
-              <span className="drilldown-row-text">
-                <b>{row.label}</b>
-                <small>{row.description}</small>
-              </span>
-            </>
-          );
+      <div
+        className={`drilldown-bars-shell ${hasMoreBars ? "has-scroll-more" : ""}`}
+      >
+        <div className="drilldown-bars" data-testid="drilldown-bars" ref={barsRef}>
+          {view.rows.map((row, index) => {
+            const width =
+              maxCents > 0 ? Math.max(2, (row.amountCents / maxCents) * 100) : 0;
+            const colour = getDrilldownColour(index);
+            const content = (
+              <>
+                <span className="drilldown-bar-track">
+                  <span
+                    className="drilldown-bar-fill"
+                    style={{ width: `${width}%`, backgroundColor: colour }}
+                  />
+                </span>
+                <strong>{formatCurrency(row.amount)}</strong>
+                <span className="drilldown-row-text">
+                  <b>{row.label}</b>
+                  <small>{row.description}</small>
+                </span>
+              </>
+            );
 
-          return row.hasChildren ? (
-            <button
-              key={row.id}
-              type="button"
-              className="drilldown-row drilldown-row-button"
-              onClick={() => onSelectChild(row.id)}
-              aria-label={`Open ${row.label} breakdown`}
-            >
-              {content}
-            </button>
-          ) : (
-            <div key={row.id} className="drilldown-row">
-              {content}
-            </div>
-          );
-        })}
+            return row.hasChildren ? (
+              <button
+                key={row.id}
+                type="button"
+                className="drilldown-row drilldown-row-button"
+                onClick={() => onSelectChild(row.id)}
+                aria-label={`Open ${row.label} breakdown`}
+              >
+                {content}
+              </button>
+            ) : (
+              <div key={row.id} className="drilldown-row">
+                {content}
+              </div>
+            );
+          })}
+        </div>
+        <span
+          aria-hidden="true"
+          className="drilldown-scroll-affordance"
+          data-testid="drilldown-scroll-affordance"
+          data-visible={hasMoreBars ? "true" : "false"}
+        />
       </div>
       <p className="drilldown-source">
         {view.node.id === "defence" ? "Source" : sourcePrefix}:{" "}
@@ -439,6 +519,14 @@ function StoryFrame({
       <section
         className={`story-card story-card-${currentKind} story-tone-${tone} ${surfaceClasses.surface} ${surfaceClasses.ink}`}
         data-step={currentKind}
+        style={
+          {
+            "--story-surface-colour":
+              surface === "charcoal"
+                ? "var(--story-charcoal)"
+                : "var(--story-paper)",
+          } as CSSProperties
+        }
       >
         <WavyLines />
         <PatternBlock />
@@ -762,9 +850,11 @@ export function BudgetWrappedFlow() {
           <TaxEstimateMark />
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h2 className="story-title">{currentStep.title}</h2>
-          <p className="story-number story-number-red">
-            {formatCurrency(taxEstimate.totalEstimatedTax)}
-          </p>
+          <AnimatedCurrency
+            amount={taxEstimate.totalEstimatedTax}
+            as="p"
+            className="story-number story-number-red"
+          />
           <p className="story-copy">
             Including a simplified Medicare levy. Still an estimate, not tax
             advice.
@@ -814,11 +904,11 @@ export function BudgetWrappedFlow() {
             />
             <p className="story-eyebrow">{currentStep.eyebrow}</p>
             <p className="story-kicker">{currentCategoryStory.meta.message}</p>
-            <p
+            <AnimatedCurrency
+              amount={currentCategoryStory.allocation.amount}
+              as="p"
               className={`story-number story-number-${currentCategoryStory.meta.tone}`}
-            >
-              {formatCurrency(currentCategoryStory.allocation.amount)}
-            </p>
+            />
             <h2 className="story-category-title">
               {currentCategoryStory.meta.title}
             </h2>
@@ -902,9 +992,11 @@ export function BudgetWrappedFlow() {
         <section className="story-moment story-moment-summary">
           <p className="story-eyebrow">{currentStep.eyebrow}</p>
           <h2 className="story-title">{currentStep.title}</h2>
-          <p className="summary-total">
-            {formatCurrency(taxEstimate.totalEstimatedTax)}
-          </p>
+          <AnimatedCurrency
+            amount={taxEstimate.totalEstimatedTax}
+            as="p"
+            className="summary-total"
+          />
           <SummaryRankedBarChart
             summary={allocationSummary}
             onFunctionSelect={openDrilldown}

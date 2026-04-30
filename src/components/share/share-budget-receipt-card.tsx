@@ -1,3 +1,6 @@
+"use client";
+
+import { useCountUp } from "@/hooks/use-count-up";
 import type { ShareCardData } from "@/lib/share/share-card-data";
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
@@ -27,6 +30,7 @@ function getBarWidth(share: number, maxShare: number) {
 
 export function ShareBudgetReceiptCard({ data }: { data: ShareCardData }) {
   const maxShare = Math.max(...data.rows.map((row) => row.shareOfTotal), 0);
+  const displayedTaxAmount = useCountUp(data.estimatedTaxAmount, 700);
 
   return (
     <article
@@ -141,6 +145,8 @@ export function ShareBudgetReceiptCard({ data }: { data: ShareCardData }) {
         <text
           x="74"
           y="712"
+          aria-hidden="true"
+          opacity="0"
           fill="#149c48"
           stroke="#fbfaf5"
           strokeWidth="8"
@@ -150,6 +156,20 @@ export function ShareBudgetReceiptCard({ data }: { data: ShareCardData }) {
           fontWeight="1000"
         >
           {formatCurrency(data.estimatedTaxAmount)}
+        </text>
+        <text
+          x="74"
+          y="712"
+          fill="#149c48"
+          stroke="#fbfaf5"
+          strokeWidth="8"
+          paintOrder="stroke fill"
+          fontFamily="Inter, Arial, sans-serif"
+          fontSize="186"
+          fontWeight="1000"
+          suppressHydrationWarning
+        >
+          {formatCurrency(displayedTaxAmount)}
         </text>
         <rect x="74" y="792" width="930" height="58" rx="29" fill="#fbfaf5" />
         <text

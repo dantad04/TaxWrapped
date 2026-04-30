@@ -341,3 +341,36 @@ Result:
 
 - Typography clipping hotfix implemented for human review.
 - No new ticket was started.
+
+## Ticket 011: Count-Up Reveal And Drilldown Scroll Affordance
+
+Status: Human Review
+
+Scope:
+
+- Applied a reusable React count-up hook to the tax estimate hero, category contribution hero, drilldown contribution headline, final summary receipt total, and live share-card hero figure.
+- Preserved existing currency formatting and reserved final text width so animated values do not cause layout shift.
+- Added `prefers-reduced-motion` handling so count-up values render immediately at their final amount when reduced motion is requested.
+- Added a pointer-transparent drilldown bar-list fade that appears only while more list content remains below and hides at the bottom of the scroll range.
+- Added focused unit tests for reduced-motion count-up behavior, final count-up completion, and drilldown scroll affordance overflow behavior.
+- Created the missing Ticket 011 queue file and design-review README without screenshots, per implementation instruction.
+- Kept tax, Budget, allocation, source data, copy, palette, analytics, storage, and route scope unchanged.
+
+Commands run:
+
+- `git status --short` - clean before applying the parked drilldown base stash
+- `git stash apply stash@{0}` - applied the earlier drilldown base work
+- `git diff --check` - passed before the drilldown base commit
+- `git commit -m "Add category drilldown card and minor visual fixes"` - created base commit `f723b57`
+- `npm run test:run` - passed during Ticket 011 iteration
+- `npm run lint` - failed once on synchronous count-up hook state updates, then passed through `npm run validate` after moving updates into timer callbacks
+- `npm run typecheck` - failed once on test helper `this` typing, then passed after adding explicit `HTMLElement` annotations
+- Playwright browser smoke at 390px - passed for count-up start/end, drilldown fade show/hide, and nested row interaction
+- `npm run validate` - passed
+- `npm run test:e2e` - failed once on duplicate hidden reserve text, then passed after reserving HTML width without duplicate text
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 011 implemented for human review.
+- No new ticket was started.
