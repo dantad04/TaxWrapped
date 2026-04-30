@@ -43,7 +43,7 @@ The allocation engine takes the user's estimated Commonwealth tax amount and all
 
 - Allocations are illustrative only.
 - Taxes are not hypothecated.
-- The allocation does not imply that a user's exact dollars went to specific functions or programs.
+- The allocation does not imply that a person's tax payment was literally assigned to specific functions or programs.
 - Final summary allocations use additive top-level Budget functions from Statement 5, Table 5.3.
 - The top-level Budget function rows are normalised against their own additive row total of AUD 785,671 million, not the rounded published total of AUD 785,670 million.
 - Spotlight programs from Table 5.3.1 are non-additive highlights and must not be added to the final summary total.

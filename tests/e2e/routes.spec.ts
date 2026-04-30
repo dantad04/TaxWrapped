@@ -5,7 +5,7 @@ const routes = [
   { path: "/methodology", heading: "Methodology" },
   { path: "/sources", heading: "Sources" },
   { path: "/privacy", heading: "Privacy" },
-  { path: "/share-preview", heading: "Share preview" },
+  { path: "/share-preview", heading: "Sample share preview" },
 ];
 
 test.describe("routes", () => {
@@ -130,13 +130,18 @@ test.describe("mobile story flow", () => {
       page.getByRole("img", { name: /Final summary bar chart/ }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Share preview" }),
+      page.getByRole("link", { name: "Sample share preview" }),
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Methodology" }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Sources" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Privacy" })).toBeVisible();
+    expect(page.url()).not.toContain("90000");
+    expect(new URL(page.url()).search).toBe("");
+    await expect
+      .poll(() => page.evaluate(() => document.cookie))
+      .toBe("");
 
     await page.getByRole("button", { name: "Restart" }).click();
     await expect(
@@ -164,7 +169,10 @@ test.describe("share preview", () => {
     const shareCard = page.getByTestId("share-card");
 
     await expect(
-      page.getByRole("heading", { name: "Share preview" }),
+      page.getByRole("heading", { name: "Sample share preview" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/fixed sample estimate/i),
     ).toBeVisible();
     await expect(shareCard).toContainText("Australian Budget Wrapped");
     await expect(shareCard).toContainText("$19,588");
@@ -175,6 +183,9 @@ test.describe("share preview", () => {
     );
     await expect(shareCard).not.toContainText("90,000");
     await expect(shareCard).not.toContainText("$90,000");
+    await expect(shareCard).not.toHaveAttribute("aria-label", /90,000/);
+    expect(page.url()).not.toContain("90000");
+    expect(new URL(page.url()).search).toBe("");
     await expect(shareCard).not.toContainText(
       "Revenue assistance to the States and Territories",
     );

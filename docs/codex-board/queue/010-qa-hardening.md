@@ -1,6 +1,6 @@
 # Ticket 010: QA Hardening
 
-Status: Ready
+Status: Human Review
 
 ## Goal
 

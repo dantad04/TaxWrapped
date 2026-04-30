@@ -53,8 +53,8 @@ export default function MethodologyPage() {
         <p>
           The Budget story allocates your estimated tax proportionally across
           Australian Government expenses. It is illustrative. Taxes are not
-          hypothecated, and this does not claim that your dollars were literally
-          assigned to particular functions or programs.
+          hypothecated, and this does not claim that your tax payment was
+          literally assigned to particular functions or programs.
         </p>
         <ul>
           <li>

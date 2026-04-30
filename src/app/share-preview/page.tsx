@@ -24,8 +24,8 @@ export default function SharePreviewPage() {
         <Link href="/sources">Sources</Link>
       </nav>
       <header className="share-preview-hero">
-        <p>Share preview</p>
-        <h1>Share preview</h1>
+        <p>Sample share preview</p>
+        <h1>Sample share preview</h1>
         <span>
           Design QA uses a fixed sample estimate. This is not your actual
           result, and no taxable income is shown on the card.

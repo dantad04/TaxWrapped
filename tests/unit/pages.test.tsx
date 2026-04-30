@@ -85,7 +85,9 @@ describe("routes", () => {
     const shareCard = screen.getByTestId("share-card");
     const shareCardText = shareCard.textContent ?? "";
 
-    expect(screen.getByRole("heading", { name: "Share preview" })).toBeDefined();
+    expect(
+      screen.getByRole("heading", { name: "Sample share preview" }),
+    ).toBeDefined();
     expect(shareCardText).toContain("Australian Budget Wrapped");
     expect(shareCardText).toContain("$19,588");
     expect(shareCardText).toContain("2025-26 Budget");

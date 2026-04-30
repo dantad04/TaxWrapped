@@ -8,7 +8,7 @@ Enter your taxable income. We estimate your Commonwealth income tax and show an 
 
 Australian Budget Wrapped is a mobile-first wrapped-style web app for Australian users. A user enters taxable income, receives an estimated Commonwealth income tax amount, and sees an illustrative proportional allocation across Australian Government spending categories.
 
-The app must be clear that this is not exactly where a person's dollars went. It is an illustrative proportional allocation of estimated Commonwealth income tax across Australian Government expenses.
+The app must be clear that this is not a literal tracing of a person's tax payment. It is an illustrative proportional allocation of estimated Commonwealth income tax across Australian Government expenses.
 
 ## Privacy Rule
 

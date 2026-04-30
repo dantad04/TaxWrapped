@@ -23,7 +23,7 @@ import {
 
 export const BUDGET_ALLOCATION_CAVEATS = [
   "Allocation is proportional and illustrative only.",
-  "Taxes are not hypothecated and this does not show where a user's exact dollars went.",
+  "Taxes are not hypothecated; allocations are proportional category estimates, not literal earmarking.",
   "Final summary allocations use additive top-level Budget functions only.",
   "Spotlight program allocations are non-additive highlights and must not be added to the final summary total.",
   "Rounding uses a deterministic largest-remainder method at cent precision and preserves the user's estimated tax total.",
@@ -31,7 +31,7 @@ export const BUDGET_ALLOCATION_CAVEATS = [
 
 export const SPOTLIGHT_ALLOCATION_CAVEATS = [
   "Spotlight allocations are proportional and illustrative only.",
-  "Taxes are not hypothecated and this does not show where a user's exact dollars went.",
+  "Taxes are not hypothecated; spotlight allocations are proportional estimates, not literal earmarking.",
   "Spotlight programs are non-additive highlights and must not be added to the final summary total.",
   "Spotlight amounts are independently rounded to cents because they are not a reconciled summary.",
 ] as const;

@@ -281,3 +281,35 @@ Result:
 
 - Ticket 009 implemented for human review.
 - Ticket 010 was not started.
+
+## Ticket 010: QA Hardening
+
+Status: Human Review
+
+Scope:
+
+- Re-read the one-ticket rule, Ticket 010, product docs, prior design-review READMEs, app routes, tax/Budget/allocation/chart/share helpers, and existing tests.
+- Inspected representative Ticket 007, 008, and 009 screenshots before generating the Ticket 010 screenshot set.
+- Added QA hardening tests for storage/API/analytics/server-action absence, risky hypothecation wording, calculation/allocation/share reconciliation, source registry connections, spotlight exclusion, and share-card raw-income omission.
+- Relabelled the final-summary share entry and `/share-preview` heading as a sample share preview because the route uses a fixed QA estimate.
+- Reworded allocation caveats and methodology/product framing to avoid exact-dollar or literal assignment wording.
+- Added `docs/product/MVP_FINAL_REVIEW.md` with MVP scope, non-goals, data sources, tax assumptions, privacy posture, limitations, launch blockers, recommended follow-up, and manual review checklist.
+- Generated Ticket 010 screenshots at 390px and 430px for intro, input, tax result, big-picture allocation, three category cards, one spotlight card, final summary, methodology, sources, privacy, and share preview, plus an exact 1080 by 1920 share-card PNG.
+- Kept tax, Budget, allocation, source data, analytics, storage, backend upload, deployment, and major feature scope unchanged.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- Manual source scans for risky copy, storage, cookies, API calls, analytics hooks, and server actions - passed after copy fixes
+- `npm run test:run -- --runInBand` - failed because Vitest does not support the Jest `--runInBand` option
+- `npm run test:run` - passed during iteration
+- `npm run build` - passed for production screenshot capture
+- Playwright screenshot capture at 390px, 430px, and 1080 by 1920 - passed
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 010 implemented for human review.
+- No ticket 011 was created.
