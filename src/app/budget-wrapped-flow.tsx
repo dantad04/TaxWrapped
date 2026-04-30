@@ -39,6 +39,7 @@ import type {
 } from "@/lib/budget/drilldown-model";
 import type { ChartTone } from "@/lib/charts/budget-chart-data";
 import { useCountUp } from "@/hooks/use-count-up";
+import { setSharePreviewEstimatedTax } from "@/lib/share/share-preview-state";
 import { estimateAustralianTax2025_26 } from "@/lib/tax/australian-resident-2025-26";
 import type { BracketWalkRow } from "@/lib/tax/bracket-walk";
 import { buildBracketWalk } from "@/lib/tax/bracket-walk";
@@ -417,9 +418,11 @@ function AnimatedBillions({
 }
 
 function AustraliaReceiptCodaCard({
+  onSharePreview,
   totalTaxAmount,
   title,
 }: {
+  onSharePreview: React.MouseEventHandler<HTMLAnchorElement>;
   totalTaxAmount: number;
   title: string;
 }) {
@@ -442,7 +445,11 @@ function AustraliaReceiptCodaCard({
       )}
       <TransparencyLinkGroup
         links={[
-          { href: "/share-preview", label: "Sample share preview" },
+          {
+            href: "/share-preview",
+            label: "Share preview",
+            onClick: onSharePreview,
+          },
           { href: "/methodology", label: "Methodology" },
           { href: "/sources", label: "Sources" },
           { href: "/privacy", label: "Privacy" },
@@ -632,12 +639,16 @@ function BudgetDrilldownCard({
 function TransparencyLinkGroup({
   links,
 }: {
-  links: readonly { href: string; label: string }[];
+  links: readonly {
+    href: string;
+    label: string;
+    onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  }[];
 }) {
   return (
     <nav className="story-transparency-links" aria-label="Transparency links">
       {links.map((link) => (
-        <Link key={link.href} href={link.href}>
+        <Link key={link.href} href={link.href} onClick={link.onClick}>
           {link.label}
         </Link>
       ))}
@@ -836,6 +847,9 @@ export function BudgetWrappedFlow() {
   );
   const categoryStories = buildFunctionStories(allocationSummary.allocations);
   const spotlightStories = buildSpotlightStories(spotlightSummary.allocations);
+  const prepareSharePreview = useCallback(() => {
+    setSharePreviewEstimatedTax(taxEstimate.totalEstimatedTax);
+  }, [taxEstimate.totalEstimatedTax]);
 
   const steps: StoryStep[] = [
     {
@@ -1216,7 +1230,11 @@ export function BudgetWrappedFlow() {
           </p>
           <TransparencyLinkGroup
             links={[
-              { href: "/share-preview", label: "Sample share preview" },
+              {
+                href: "/share-preview",
+                label: "Share preview",
+                onClick: prepareSharePreview,
+              },
               { href: "/methodology", label: "Methodology" },
               { href: "/sources", label: "Sources" },
               { href: "/privacy", label: "Privacy" },
@@ -1227,6 +1245,7 @@ export function BudgetWrappedFlow() {
 
       {!activeDrilldownView && currentStep.kind === "coda" && (
         <AustraliaReceiptCodaCard
+          onSharePreview={prepareSharePreview}
           totalTaxAmount={taxEstimate.totalEstimatedTax}
           title={currentStep.title}
         />

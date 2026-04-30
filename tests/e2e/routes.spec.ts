@@ -1,4 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
+import fs from "node:fs/promises";
+
+const SHARE_CARD_EXPORT_FILENAME = "australian-budget-wrapped-2025-26.png";
 
 const routes = [
   { path: "/", heading: "Your Australian Budget Wrapped" },
@@ -174,7 +177,7 @@ test.describe("mobile story flow", () => {
       page.getByRole("group", { name: /Final summary bar chart/ }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Sample share preview" }),
+      page.getByRole("link", { name: "Share preview" }),
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Methodology" }),
@@ -193,7 +196,7 @@ test.describe("mobile story flow", () => {
       "Your illustrative slice: $19,588",
     );
     await expect(
-      page.getByRole("link", { name: "Sample share preview" }),
+      page.getByRole("link", { name: "Share preview" }),
     ).toBeVisible();
     expect(page.url()).not.toContain("90000");
     expect(new URL(page.url()).search).toBe("");
@@ -269,6 +272,52 @@ test.describe("mobile story flow", () => {
 });
 
 test.describe("share preview", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  async function goToFinalSummary(page: Page) {
+    await page.addInitScript(() => {
+      const originalCreateObjectURL = URL.createObjectURL.bind(URL);
+      const blobRecords: { size: number; type: string }[] = [];
+
+      Object.defineProperty(window, "__shareDownloadBlobRecords", {
+        configurable: true,
+        value: blobRecords,
+      });
+
+      URL.createObjectURL = (object: Blob | MediaSource) => {
+        if (object instanceof Blob) {
+          blobRecords.push({ size: object.size, type: object.type });
+        }
+
+        return originalCreateObjectURL(object);
+      };
+    });
+    await page.goto("/");
+    await page.waitForFunction(
+      () => document.documentElement.dataset.storyHydrated === "true",
+    );
+    await page.getByRole("button", { name: "Start", exact: true }).click();
+    await page.getByLabel("Taxable income").fill("90000");
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+
+    for (let index = 0; index < 12; index += 1) {
+      if (
+        await page
+          .getByRole("heading", { name: "Your illustrative receipt" })
+          .isVisible()
+          .catch(() => false)
+      ) {
+        return;
+      }
+
+      await page.getByRole("button", { name: "Next", exact: true }).click();
+    }
+
+    await expect(
+      page.getByRole("heading", { name: "Your illustrative receipt" }),
+    ).toBeVisible();
+  }
+
   test("renders a privacy-safe additive share card", async ({ page }) => {
     await page.goto("/share-preview");
 
@@ -295,5 +344,74 @@ test.describe("share preview", () => {
     await expect(shareCard).not.toContainText(
       "Revenue assistance to the States and Territories",
     );
+  });
+
+  test("uses the in-memory estimate and downloads a privacy-safe PNG", async ({
+    page,
+    context,
+  }) => {
+    await goToFinalSummary(page);
+    await page.getByRole("link", { name: "Share preview" }).click();
+
+    const shareCard = page.getByTestId("share-card");
+
+    await expect(
+      page.getByRole("heading", { name: "Share preview" }),
+    ).toBeVisible();
+    await expect(page.getByText(/current estimated tax amount/i)).toBeVisible();
+    await expect(shareCard).toContainText("$19,588");
+    await expect(page.locator("body")).not.toContainText("90000");
+    await expect(page.locator("body")).not.toContainText("90,000");
+    await expect(shareCard).not.toHaveAttribute("aria-label", /90000|90,000/);
+    expect(page.url()).not.toContain("90000");
+
+    const privacyState = await page.evaluate(() => ({
+      cookie: document.cookie,
+      local: window.localStorage.length,
+      search: window.location.search,
+      session: window.sessionStorage.length,
+    }));
+
+    expect(privacyState).toEqual({
+      cookie: "",
+      local: 0,
+      search: "",
+      session: 0,
+    });
+    expect(await context.cookies()).toEqual([]);
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download PNG" }).click();
+    const download = await downloadPromise;
+
+    expect(download.suggestedFilename()).toBe(SHARE_CARD_EXPORT_FILENAME);
+    expect(download.suggestedFilename()).not.toContain("90000");
+    expect(download.suggestedFilename()).not.toContain("90,000");
+
+    const blobRecord = await page.evaluate(() => {
+      const records =
+        (
+          window as unknown as {
+            __shareDownloadBlobRecords?: { size: number; type: string }[];
+          }
+        ).__shareDownloadBlobRecords ?? [];
+
+      return records.at(-1) ?? null;
+    });
+
+    expect(blobRecord?.type).toBe("image/png");
+    expect(blobRecord?.size).toBeGreaterThan(0);
+
+    const downloadedPath = await download.path();
+    expect(downloadedPath).toBeTruthy();
+
+    const downloadedPng = await fs.readFile(downloadedPath as string);
+
+    expect(downloadedPng.length).toBeGreaterThan(0);
+    expect(downloadedPng.subarray(0, 8).toString("hex")).toBe(
+      "89504e470d0a1a0a",
+    );
+    expect(downloadedPng.readUInt32BE(16)).toBe(1080);
+    expect(downloadedPng.readUInt32BE(20)).toBe(1920);
   });
 });

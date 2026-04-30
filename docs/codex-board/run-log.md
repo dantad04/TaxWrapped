@@ -467,3 +467,50 @@ Result:
 
 - Ticket 015 implemented for human review.
 - No later ticket was started.
+
+## Ticket 016: Client-Side Share Card PNG Export
+
+Status: Human Review
+
+Scope:
+
+- Added `html-to-image` for browser-only DOM-to-PNG export of the existing
+  SVG-based 1080 by 1920 share card.
+- Added a deterministic export filename:
+  `australian-budget-wrapped-2025-26.png`.
+- Added an in-memory estimated-tax handoff from the final receipt and coda share
+  links to `/share-preview`, with direct route loads still falling back to the
+  labelled fixed sample.
+- Added a Download PNG action with a loading state and a hidden fixed-size
+  export source so the visible preview remains responsive while the downloaded
+  PNG is exactly 1080 by 1920.
+- Kept raw taxable income out of the share preview route, URL parameters,
+  filename, alt text, browser storage, cookies, and app-managed PNG metadata.
+- Added unit coverage for the deterministic filename and Playwright coverage for
+  direct sample fallback, privacy checks, PNG MIME, non-zero blob size, and PNG
+  dimensions.
+- Kept tax, Budget, allocation, source data, storage, analytics, and share-card
+  visual design scope unchanged.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- `npm view html-to-image version description repository.url license` - used to
+  evaluate the preferred export library
+- `npm view dom-to-image-more version description repository.url license` - used
+  to evaluate the alternative export library
+- `npm install html-to-image` - added the chosen browser export dependency
+- `npm run typecheck` - passed
+- `npm run test:run -- tests/unit/share-card-data.test.ts tests/unit/pages.test.tsx`
+  - passed
+- `npm run test:e2e -- --grep "share preview"` - failed once before the hidden
+  export source ref was wired, then passed
+- `npm run lint` - passed
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 016 implemented for human review.
+- No later ticket was started.

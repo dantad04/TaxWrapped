@@ -16,6 +16,13 @@ const toneColours = {
   red: "#df1f26",
 } as const;
 
+interface ShareBudgetReceiptCardProps {
+  data: ShareCardData;
+  animated?: boolean;
+  className?: string;
+  testId?: string;
+}
+
 function formatCurrency(amount: number) {
   return currencyFormatter.format(Math.round(amount));
 }
@@ -28,14 +35,25 @@ function getBarWidth(share: number, maxShare: number) {
   return Math.max(18, (share / maxShare) * 800);
 }
 
-export function ShareBudgetReceiptCard({ data }: { data: ShareCardData }) {
+export function ShareBudgetReceiptCard({
+  data,
+  animated = true,
+  className,
+  testId = "share-card",
+}: ShareBudgetReceiptCardProps) {
   const maxShare = Math.max(...data.rows.map((row) => row.shareOfTotal), 0);
-  const displayedTaxAmount = useCountUp(data.estimatedTaxAmount, 700);
+  const countedTaxAmount = useCountUp(
+    data.estimatedTaxAmount,
+    animated ? 700 : 0,
+  );
+  const displayedTaxAmount = animated
+    ? countedTaxAmount
+    : data.estimatedTaxAmount;
 
   return (
     <article
-      className="share-card"
-      data-testid="share-card"
+      className={className ? `share-card ${className}` : "share-card"}
+      data-testid={testId}
       aria-label={`${data.productName} share card. Estimated Commonwealth tax ${formatCurrency(
         data.estimatedTaxAmount,
       )}. ${data.sourceYearLabel}. ${data.caveat}`}

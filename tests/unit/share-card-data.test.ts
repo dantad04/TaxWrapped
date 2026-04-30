@@ -6,6 +6,7 @@ import {
   buildShareCardData,
   sumShareCardRowCents,
 } from "@/lib/share/share-card-data";
+import { SHARE_CARD_EXPORT_FILENAME } from "@/lib/share/share-card-export";
 import { describe, expect, it } from "vitest";
 
 describe("share card data", () => {
@@ -45,5 +46,13 @@ describe("share card data", () => {
       "defence",
     ]);
     expect(shareCard.rows[5].id).toBe("remaining-additive-functions");
+  });
+
+  it("uses a deterministic export filename without taxable income digits", () => {
+    expect(SHARE_CARD_EXPORT_FILENAME).toBe(
+      "australian-budget-wrapped-2025-26.png",
+    );
+    expect(SHARE_CARD_EXPORT_FILENAME).not.toContain("90000");
+    expect(SHARE_CARD_EXPORT_FILENAME).not.toContain("90,000");
   });
 });
