@@ -1,26 +1,89 @@
-import Link from "next/link";
+import {
+  TransparencyPageShell,
+  TransparencySection,
+} from "@/components/transparency-page";
+import { sourceRegistry, type SourceId } from "@/data/sources";
+
+const sourceSupport: Partial<
+  Record<
+    SourceId,
+    {
+      sourceYear: string;
+      supports: string;
+    }
+  >
+> = {
+  "ato-resident-tax-rates-2025-26": {
+    sourceYear: "2025-26 income year",
+    supports: "Resident individual tax brackets used before offsets and Medicare levy.",
+  },
+  "ato-low-income-tax-offset": {
+    sourceYear: "2025-26 estimate setting",
+    supports: "Low Income Tax Offset thresholds and taper rates.",
+  },
+  "ato-medicare-levy": {
+    sourceYear: "2025-26 estimate setting",
+    supports: "The simplified 2% Medicare levy option and caveat framing.",
+  },
+  "bp1-2025-26-statement5-table5-3": {
+    sourceYear: "2025-26 Budget",
+    supports: "Top-level expenses by function for the additive final summary.",
+  },
+  "bp1-2025-26-statement5-table5-3-1": {
+    sourceYear: "2025-26 Budget",
+    supports: "Selected non-additive spotlight program amounts.",
+  },
+};
+
+const sources = Object.values(sourceRegistry);
 
 export default function SourcesPage() {
   return (
-    <main className="min-h-screen bg-[#f8f4ea] px-5 py-8 text-[#162016] sm:px-8">
-      <div className="mx-auto max-w-3xl space-y-8">
-        <Link href="/" className="text-sm font-bold uppercase tracking-[0.16em]">
-          Australian Budget Wrapped
-        </Link>
-        <section className="space-y-4 border-2 border-[#162016] bg-white p-6 shadow-[6px_6px_0_#162016]">
-          <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#1f6f50]">
-            Placeholder
-          </p>
-          <h1 className="text-4xl font-black">Sources</h1>
-          <p className="text-lg leading-8 text-[#31402f]">
-            This page will list budget, tax, and methodology sources once the
-            data model and source review tickets are complete.
-          </p>
-          <p className="font-semibold">
-            Source references are not final in this setup slice.
-          </p>
-        </section>
+    <TransparencyPageShell
+      eyebrow="Sources"
+      title="Sources"
+      deck="Where the numbers come from. This page is generated from the project source registry, with plain-English notes on what each source supports."
+      tone="magenta"
+      posterWord="SOURCE"
+    >
+      <TransparencySection title="Registry-backed references">
+        <p>
+          Each source below is stored in the app source registry and connected
+          to either the tax estimate, the Budget data model, or the spotlight
+          caveats.
+        </p>
+      </TransparencySection>
+
+      <div className="source-list">
+        {sources.map((source) => {
+          const support = sourceSupport[source.id as SourceId];
+
+          return (
+            <article key={source.id} className="source-card">
+              <div>
+                <p className="source-card-kicker">{source.publisher}</p>
+                <h2>{source.title}</h2>
+              </div>
+              <dl>
+                <div>
+                  <dt>Source year</dt>
+                  <dd>{support?.sourceYear ?? "Not specified in registry"}</dd>
+                </div>
+                <div>
+                  <dt>Locator</dt>
+                  <dd>{source.sourceLocator}</dd>
+                </div>
+                <div>
+                  <dt>Supports</dt>
+                  <dd>{support?.supports ?? source.note}</dd>
+                </div>
+              </dl>
+              <p>{source.note}</p>
+              <a href={source.url}>{source.url}</a>
+            </article>
+          );
+        })}
       </div>
-    </main>
+    </TransparencyPageShell>
   );
 }

@@ -6,6 +6,7 @@ import Home from "@/app/page";
 import MethodologyPage from "@/app/methodology/page";
 import PrivacyPage from "@/app/privacy/page";
 import SourcesPage from "@/app/sources/page";
+import { sourceRegistry } from "@/data/sources";
 
 afterEach(() => {
   cleanup();
@@ -32,7 +33,7 @@ async function collectSourceFiles(directory: string): Promise<string[]> {
   return files.flat();
 }
 
-describe("placeholder routes", () => {
+describe("routes", () => {
   it("home page renders", () => {
     render(<Home />);
 
@@ -46,18 +47,35 @@ describe("placeholder routes", () => {
     render(<MethodologyPage />);
 
     expect(screen.getByRole("heading", { name: "Methodology" })).toBeDefined();
+    expect(screen.getByText(/taxable income, not gross salary/i)).toBeDefined();
+    expect(screen.getByText(/Low Income Tax Offset \(LITO\)/)).toBeDefined();
+    expect(screen.getByText(/Medicare levy is simplified as 2%/)).toBeDefined();
+    expect(
+      screen.getByText(/allocates your estimated tax proportionally/i),
+    ).toBeDefined();
+    expect(screen.getByText(/Taxes are not hypothecated/)).toBeDefined();
   });
 
   it("sources page renders", () => {
     render(<SourcesPage />);
 
     expect(screen.getByRole("heading", { name: "Sources" })).toBeDefined();
+
+    for (const source of Object.values(sourceRegistry)) {
+      expect(screen.getByText(source.title)).toBeDefined();
+      expect(screen.getAllByText(source.publisher).length).toBeGreaterThan(0);
+    }
   });
 
   it("privacy page renders", () => {
     render(<PrivacyPage />);
 
     expect(screen.getByRole("heading", { name: "Privacy" })).toBeDefined();
+    expect(screen.getByText(/does not store taxable income/i)).toBeDefined();
+    expect(screen.getByText(/localStorage/)).toBeDefined();
+    expect(screen.getByText(/sessionStorage/)).toBeDefined();
+    expect(screen.getByText(/cookies/)).toBeDefined();
+    expect(screen.getByText(/not tax advice/)).toBeDefined();
   });
 
   it("landing page contains the hypothecation disclaimer", () => {
@@ -68,7 +86,12 @@ describe("placeholder routes", () => {
 
   it("does not use browser storage in source files", async () => {
     const sourceFiles = await collectSourceFiles(path.join(process.cwd(), "src"));
-    const bannedTerms = ["localStorage", "sessionStorage"];
+    const bannedTerms = [
+      "localStorage",
+      "sessionStorage",
+      "document.cookie",
+      "cookies()",
+    ];
     const matches: string[] = [];
 
     await Promise.all(
@@ -79,6 +102,31 @@ describe("placeholder routes", () => {
           if (source.includes(term)) {
             matches.push(`${path.relative(process.cwd(), filePath)}: ${term}`);
           }
+        }
+      }),
+    );
+
+    expect(matches).toEqual([]);
+  });
+
+  it("does not use the banned exact-dollar phrase in source files", async () => {
+    const sourceFiles = await collectSourceFiles(path.join(process.cwd(), "src"));
+    const bannedPhrase = [
+      "exactly",
+      "where",
+      "your",
+      "tax",
+      "dollars",
+      "went",
+    ].join(" ");
+    const matches: string[] = [];
+
+    await Promise.all(
+      sourceFiles.map(async (filePath) => {
+        const source = await fs.readFile(filePath, "utf8");
+
+        if (source.includes(bannedPhrase)) {
+          matches.push(path.relative(process.cwd(), filePath));
         }
       }),
     );

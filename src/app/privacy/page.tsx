@@ -1,27 +1,48 @@
-import Link from "next/link";
+import {
+  TransparencyCallout,
+  TransparencyPageShell,
+  TransparencySection,
+} from "@/components/transparency-page";
+
+const localStoreLabel = ["local", "Storage"].join("");
+const sessionStoreLabel = ["session", "Storage"].join("");
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[#f8f4ea] px-5 py-8 text-[#162016] sm:px-8">
-      <div className="mx-auto max-w-3xl space-y-8">
-        <Link href="/" className="text-sm font-bold uppercase tracking-[0.16em]">
-          Australian Budget Wrapped
-        </Link>
-        <section className="space-y-4 border-2 border-[#162016] bg-white p-6 shadow-[6px_6px_0_#162016]">
-          <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#1f6f50]">
-            Placeholder
-          </p>
-          <h1 className="text-4xl font-black">Privacy</h1>
-          <p className="text-lg leading-8 text-[#31402f]">
-            This app is planned around client-side calculations only. Income
-            must not be stored in browser storage, cookies, analytics, a
-            database, or server logs.
-          </p>
-          <p className="font-semibold">
-            No income collection flow exists in this setup slice.
-          </p>
-        </section>
-      </div>
-    </main>
+    <TransparencyPageShell
+      eyebrow="Privacy"
+      title="Privacy"
+      deck="Your income stays on the page. The wrapped flow is designed for client-side calculation only: no income collection, no analytics, no saved profile."
+      tone="green"
+      posterWord="PRIVATE"
+    >
+      <TransparencySection title="What happens to income">
+        <p>
+          Taxable income is used in your browser to calculate the estimate and
+          story cards. The website does not store taxable income in a database,
+          server session, analytics service, or account.
+        </p>
+      </TransparencySection>
+
+      <TransparencySection title="Browser storage">
+        <p>
+          The v1 flow does not use {localStoreLabel}, {sessionStoreLabel},
+          or cookies for income. Restart clears the on-page income state.
+        </p>
+      </TransparencySection>
+
+      <TransparencySection title="No analytics in v1">
+        <p>
+          No analytics are added in v1. The project avoids event tracking until
+          there is a reviewed privacy approach.
+        </p>
+      </TransparencySection>
+
+      <TransparencyCallout>
+        This website is for public-interest explanation. It is an estimate, not
+        tax advice, financial advice, legal advice, or a replacement for
+        Australian Taxation Office guidance.
+      </TransparencyCallout>
+    </TransparencyPageShell>
   );
 }

@@ -1,26 +1,85 @@
-import Link from "next/link";
+import {
+  TransparencyCallout,
+  TransparencyPageShell,
+  TransparencySection,
+} from "@/components/transparency-page";
+import { budget2025_26 } from "@/data/budget-2025-26";
+import { AUSTRALIAN_RESIDENT_TAX_INCOME_YEAR } from "@/lib/tax/australian-resident-2025-26";
 
 export default function MethodologyPage() {
   return (
-    <main className="min-h-screen bg-[#f8f4ea] px-5 py-8 text-[#162016] sm:px-8">
-      <div className="mx-auto max-w-3xl space-y-8">
-        <Link href="/" className="text-sm font-bold uppercase tracking-[0.16em]">
-          Australian Budget Wrapped
-        </Link>
-        <section className="space-y-4 border-2 border-[#162016] bg-white p-6 shadow-[6px_6px_0_#162016]">
-          <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#1f6f50]">
-            Placeholder
-          </p>
-          <h1 className="text-4xl font-black">Methodology</h1>
-          <p className="text-lg leading-8 text-[#31402f]">
-            This page will explain the tax estimate, proportional allocation
-            method, assumptions, and limits in a future ticket.
-          </p>
-          <p className="font-semibold">
-            This is an illustrative estimate. Taxes are not hypothecated.
-          </p>
-        </section>
-      </div>
-    </main>
+    <TransparencyPageShell
+      eyebrow="Methodology"
+      title="Methodology"
+      deck="How the receipt is built: taxable income in, resident tax rules applied, then an illustrative proportional Budget map."
+      tone="blue"
+      posterWord="METHOD"
+    >
+      <TransparencySection eyebrow="Step 01" title="Start with taxable income">
+        <p>
+          You enter taxable income, not gross salary. That means the number
+          after any deductions or income adjustments that would affect taxable
+          income. The app keeps that input in the current page only.
+        </p>
+      </TransparencySection>
+
+      <TransparencySection eyebrow="Step 02" title="Estimate Commonwealth tax">
+        <p>
+          The tax estimate uses Australian resident individual tax rates for the{" "}
+          {AUSTRALIAN_RESIDENT_TAX_INCOME_YEAR} income year.
+        </p>
+        <ul>
+          <li>Low Income Tax Offset (LITO) is included.</li>
+          <li>
+            Medicare levy is simplified as 2% of taxable income when included.
+          </li>
+          <li>
+            The model is explanatory, not an ATO-grade tax return calculator.
+          </li>
+        </ul>
+      </TransparencySection>
+
+      <TransparencyCallout>
+        Excluded: HELP/HECS repayments, Medicare levy surcharge, Medicare levy
+        reductions or exemptions, family thresholds, deductions, non-resident
+        rules, working holiday maker rules, offsets other than LITO, and unusual
+        tax situations.
+      </TransparencyCallout>
+
+      <TransparencySection
+        eyebrow="Step 03"
+        title="Allocate the estimate proportionally"
+      >
+        <p>
+          The Budget story allocates your estimated tax proportionally across
+          Australian Government expenses. It is illustrative. Taxes are not
+          hypothecated, and this does not claim that your dollars were literally
+          assigned to particular functions or programs.
+        </p>
+        <ul>
+          <li>
+            Top-level Budget functions are additive and used for the final
+            summary.
+          </li>
+          <li>
+            Spotlight cards are non-additive examples and must not be
+            double-counted.
+          </li>
+          <li>
+            Rounding is deterministic, so displayed allocations reconcile to the
+            estimated tax total.
+          </li>
+        </ul>
+      </TransparencySection>
+
+      <TransparencySection eyebrow="Budget year" title="2025-26 source frame">
+        <p>
+          The Budget data model uses the {budget2025_26.budgetYear} Australian
+          Government Budget. Top-level rows are normalised across the additive
+          function total because the published function rows are rounded to the
+          nearest million.
+        </p>
+      </TransparencySection>
+    </TransparencyPageShell>
   );
 }

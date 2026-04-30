@@ -1,8 +1,6 @@
 # Methodology
 
-Status: Budget data model, tax estimate engine, and allocation engine added
-
-This document will be expanded in future tickets as the user-facing story flow and final explanatory copy are reviewed.
+Status: Budget data model, tax estimate engine, allocation engine, and public methodology surface added
 
 ## Budget Data Model
 
@@ -51,10 +49,6 @@ The allocation engine takes the user's estimated Commonwealth tax amount and all
 - Spotlight programs from Table 5.3.1 are non-additive highlights and must not be added to the final summary total.
 - Final summary rounding uses a deterministic largest-remainder method at cent precision so displayed function allocations sum exactly to the user's estimated tax total.
 - Stable tie-breaking follows original Budget function order.
-
-Planned methodology coverage:
-
-- Why the result is illustrative and not an exact trace of a user's tax dollars.
 
 Core caveat:
 

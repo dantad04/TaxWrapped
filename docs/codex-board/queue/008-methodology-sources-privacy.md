@@ -1,6 +1,6 @@
 # Ticket 008: Methodology, Sources, and Privacy
 
-Status: Ready
+Status: Human Review
 
 ## Goal
 

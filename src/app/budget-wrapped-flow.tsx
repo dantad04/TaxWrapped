@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   AllocationStackedChart,
@@ -244,6 +245,22 @@ function TaxEstimateMark() {
 
 function PosterYear() {
   return <div aria-hidden="true" className="story-poster-year">25-26</div>;
+}
+
+function TransparencyLinkGroup({
+  links,
+}: {
+  links: readonly { href: string; label: string }[];
+}) {
+  return (
+    <nav className="story-transparency-links" aria-label="Transparency links">
+      {links.map((link) => (
+        <Link key={link.href} href={link.href}>
+          {link.label}
+        </Link>
+      ))}
+    </nav>
+  );
 }
 
 interface StoryFrameProps {
@@ -564,6 +581,12 @@ export function BudgetWrappedFlow() {
             Including a simplified Medicare levy. Still an estimate, not tax
             advice.
           </p>
+          <TransparencyLinkGroup
+            links={[
+              { href: "/methodology", label: "How calculated" },
+              { href: "/sources", label: "Sources" },
+            ]}
+          />
         </section>
       )}
 
@@ -579,6 +602,12 @@ export function BudgetWrappedFlow() {
           <p className="story-caveat">
             Illustrative only. Taxes are not hypothecated.
           </p>
+          <TransparencyLinkGroup
+            links={[
+              { href: "/methodology", label: "Methodology" },
+              { href: "/sources", label: "Sources" },
+            ]}
+          />
         </section>
       )}
 
@@ -686,6 +715,13 @@ export function BudgetWrappedFlow() {
             Estimate only. This is a proportional Budget map, not a record of
             actual spending.
           </p>
+          <TransparencyLinkGroup
+            links={[
+              { href: "/methodology", label: "Methodology" },
+              { href: "/sources", label: "Sources" },
+              { href: "/privacy", label: "Privacy" },
+            ]}
+          />
         </section>
       )}
     </StoryFrame>

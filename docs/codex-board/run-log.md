@@ -218,3 +218,35 @@ Result:
 
 - Ticket 007 implemented for human review.
 - Ticket 008 was not started.
+
+## Ticket 008: Methodology, Sources, and Privacy
+
+Status: Human Review
+
+Scope:
+
+- Replaced placeholder `/methodology`, `/sources`, and `/privacy` pages with wrapped-style transparency pages.
+- Added methodology content for taxable income, 2025-26 resident tax rates, LITO, simplified Medicare levy, exclusions, proportional allocation, non-hypothecation, additive Budget functions, non-additive spotlights, and deterministic rounding.
+- Surfaced every existing source registry entry on `/sources` with title, publisher, source year/context, URL, locator, and plain-English support notes.
+- Added privacy copy confirming income stays client-side, taxable income is not stored, no income browser storage or cookies are used, no analytics are added in v1, and the result is not tax advice.
+- Added compact Methodology, Sources, and Privacy links near the tax/allocation/final story surfaces without changing calculation logic.
+- Updated tests for transparency content, source registry rendering, banned phrase absence, storage API absence, and final-summary transparency links.
+- Generated Ticket 008 screenshots at 390px and 430px for methodology, sources, privacy, and the final summary with transparency links.
+- Kept tax, Budget, allocation, source data, analytics, storage, and share-card functionality unchanged.
+
+Commands run:
+
+- `git status --short` - clean before editing
+- `npm run typecheck` - passed during iteration
+- `npm run lint` - passed during iteration
+- `npm run test:run` - failed once during iteration on outdated heading assertions, then passed after restoring route-name primary headings
+- `npm run build` - passed for production screenshot capture
+- Playwright screenshot capture at 390px and 430px widths - passed after correcting the final-summary step count and tightening transparency heading scale
+- `npm run validate` - passed
+- `npm run test:e2e` - passed
+- `git diff --check` - passed
+
+Result:
+
+- Ticket 008 implemented for human review.
+- Ticket 009 was not started.

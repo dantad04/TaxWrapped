@@ -1,8 +1,6 @@
 # Sources
 
-Status: Budget and tax sources added
-
-This document will be expanded in future tickets after allocation methodology and privacy copy are reviewed.
+Status: Budget and tax sources added and surfaced on `/sources`
 
 ## Budget Expenses
 
@@ -11,10 +9,6 @@ This document will be expanded in future tickets after allocation methodology an
 - Table 5.3: used for 2025-26 top-level expenses by function.
 - Table 5.3.1: used for selected 2025-26 spotlight programs by expense.
 - Amounts are reported as AUD millions.
-
-## Pending Source Areas
-
-- Final explanatory copy for methodology and caveats.
 
 ## Tax Estimate
 

@@ -7,7 +7,7 @@ const routes = [
   { path: "/privacy", heading: "Privacy" },
 ];
 
-test.describe("placeholder routes", () => {
+test.describe("routes", () => {
   for (const route of routes) {
     test(`${route.path} renders`, async ({ page }) => {
       await page.goto(route.path);
@@ -64,7 +64,9 @@ test.describe("mobile story flow", () => {
       page.getByRole("img", { name: /Big-picture allocation chart/ }),
     ).toBeVisible();
     await expect(
-      page.locator(".allocation-chart-key").getByText(/Social security\s+and welfare/),
+      page
+        .locator(".allocation-chart-key")
+        .getByText(/Social security\s+and welfare/),
     ).toBeVisible();
     await expect(page.getByText(/Taxes are not hypothecated/)).toBeVisible();
 
@@ -126,6 +128,11 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("img", { name: /Final summary bar chart/ }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Methodology" }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sources" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Privacy" })).toBeVisible();
 
     await page.getByRole("button", { name: "Restart" }).click();
     await expect(
