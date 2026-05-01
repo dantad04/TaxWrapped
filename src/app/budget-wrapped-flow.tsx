@@ -892,6 +892,8 @@ function StoryFrame({
 }: StoryFrameProps) {
   const colour = storyPalette[tone];
   const surfaceClasses = storySurfaces[surface];
+  const surfaceColour =
+    surface === "charcoal" ? "var(--story-charcoal)" : "var(--story-paper)";
   const progress = ((currentStep + 1) / totalSteps) * 100;
   const cardRef = useRef<HTMLElement>(null);
 
@@ -917,42 +919,15 @@ function StoryFrame({
 
   return (
     <main className="story-shell">
-      <div className={`story-desktop-stage story-tone-${tone}`}>
-        <aside className="story-desktop-rail" aria-label="Story context">
-          <p className="story-desktop-label">Australian Budget Wrapped</p>
-          <div className="story-desktop-meter">
-            <span>Step</span>
-            <strong>
-              {currentStep + 1}/{totalSteps}
-            </strong>
-            <div className="story-desktop-progress" aria-hidden="true">
-              <span style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-          <p className="story-desktop-caveat">
-            Illustrative estimate. Taxes are not hypothecated.
-          </p>
-          <nav
-            className="story-desktop-links"
-            aria-label="Desktop transparency links"
-          >
-            <Link href="/methodology">Methodology</Link>
-            <Link href="/sources">Sources</Link>
-            <Link href="/privacy">Privacy</Link>
-          </nav>
-        </aside>
+      <div
+        className={`story-desktop-stage story-tone-${tone}`}
+        style={{ "--story-surface-colour": surfaceColour } as CSSProperties}
+      >
         <section
           ref={cardRef}
           className={`story-card story-card-${currentKind} story-tone-${tone} ${surfaceClasses.surface} ${surfaceClasses.ink}`}
           data-step={currentKind}
-          style={
-            {
-              "--story-surface-colour":
-                surface === "charcoal"
-                  ? "var(--story-charcoal)"
-                  : "var(--story-paper)",
-            } as CSSProperties
-          }
+          style={{ "--story-surface-colour": surfaceColour } as CSSProperties}
         >
           <WavyLines />
           <PatternBlock />
@@ -979,31 +954,44 @@ function StoryFrame({
             }`}
             aria-label="Story controls"
           >
-            <button
-              type="button"
-              className="story-icon-button"
-              onClick={onBack}
-              disabled={!canGoBack}
-              aria-label="Back"
+            <nav
+              className="story-controls-links"
+              aria-label="Desktop transparency links"
             >
-              ←
-            </button>
-            <button
-              type="button"
-              className="story-main-button"
-              onClick={onNext}
-              disabled={!canGoNext}
-            >
-              {nextLabel}
-            </button>
-            <button
-              type="button"
-              className="story-icon-button"
-              onClick={onRestart}
-              aria-label="Restart"
-            >
-              ↺
-            </button>
+              <Link href="/methodology">Methodology</Link>
+              <Link href="/sources">Sources</Link>
+              <Link href="/privacy">Privacy</Link>
+            </nav>
+            <p className="story-controls-caveat">
+              Illustrative estimate. Taxes are not hypothecated.
+            </p>
+            <div className="story-controls-actions">
+              <button
+                type="button"
+                className="story-icon-button"
+                onClick={onBack}
+                disabled={!canGoBack}
+                aria-label="Back"
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                className="story-main-button"
+                onClick={onNext}
+                disabled={!canGoNext}
+              >
+                {nextLabel}
+              </button>
+              <button
+                type="button"
+                className="story-icon-button"
+                onClick={onRestart}
+                aria-label="Restart"
+              >
+                ↺
+              </button>
+            </div>
           </nav>
         </section>
       </div>

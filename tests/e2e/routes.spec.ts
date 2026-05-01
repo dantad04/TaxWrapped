@@ -5,6 +5,10 @@ const SHARE_CARD_EXPORT_FILENAME = "australian-budget-wrapped-2025-26.png";
 const HERO_FIT_SELECTOR = "[data-hero-fit]";
 const HERO_FIT_INCOMES = [0, 5, 18200, 90000, 250000, 1000000] as const;
 const HERO_FIT_VIEWPORT_WIDTHS = [360, 390, 430] as const;
+const DESKTOP_CONTAINMENT_VIEWPORTS = [
+  { width: 1280, height: 800 },
+  { width: 1440, height: 900 },
+] as const;
 
 const routes = [
   { path: "/", heading: "Your Australian Budget Wrapped" },
@@ -108,7 +112,9 @@ test.describe("mobile story flow", () => {
         .getByText(/Social security\s+and welfare/),
     ).toBeVisible();
     await expect(
-      page.locator(".story-card").getByText(/Taxes are not hypothecated/),
+      page.locator(".story-content .story-caveat").getByText(
+        /Taxes are not hypothecated/,
+      ),
     ).toBeVisible();
 
     await clickStoryButton(page, "Next");
@@ -537,6 +543,188 @@ async function expectDrilldownRowsNotClipped(page: Page) {
   }
 }
 
+async function waitForDesktopLayout(page: Page) {
+  await page.waitForFunction(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
+  await page.waitForTimeout(760);
+}
+
+async function expectDesktopContentContained(page: Page, context: string) {
+  await waitForDesktopLayout(page);
+
+  const failures = await page.locator(".story-card").evaluate((container) => {
+    const containerRect = container.getBoundingClientRect();
+    const ignoredSelector = [
+      ".story-lines",
+      ".story-pattern",
+      ".story-slab",
+      ".story-poster-year",
+      ".story-watermark",
+    ].join(",");
+    const elements = Array.from(container.querySelectorAll("*"));
+    const failures: {
+      bottom: number;
+      className: string;
+      left: number;
+      right: number;
+      tagName: string;
+      text: string;
+      top: number;
+    }[] = [];
+
+    for (const element of elements) {
+      if (!(element instanceof HTMLElement || element instanceof SVGElement)) {
+        continue;
+      }
+
+      if (element.closest(ignoredSelector)) {
+        continue;
+      }
+
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+
+      if (
+        style.display === "none" ||
+        style.visibility === "hidden" ||
+        rect.width === 0 ||
+        rect.height === 0
+      ) {
+        continue;
+      }
+
+      if (
+        rect.left < containerRect.left - 2 ||
+        rect.right > containerRect.right + 2 ||
+        rect.top < containerRect.top - 2 ||
+        rect.bottom > containerRect.bottom + 2
+      ) {
+        failures.push({
+          bottom: rect.bottom,
+          className:
+            typeof element.className === "string" ? element.className : "",
+          left: rect.left,
+          right: rect.right,
+          tagName: element.tagName.toLowerCase(),
+          text: element.textContent?.trim().slice(0, 80) ?? "",
+          top: rect.top,
+        });
+      }
+    }
+
+    return failures;
+  });
+
+  expect(failures, context).toEqual([]);
+
+  const pageScrolls = await page.evaluate(
+    () =>
+      document.documentElement.scrollHeight > window.innerHeight + 1 ||
+      document.body.scrollHeight > window.innerHeight + 1,
+  );
+
+  expect(pageScrolls, `${context} page scroll`).toBe(false);
+}
+
+async function advanceDesktopAndAssert(
+  page: Page,
+  heading: string | RegExp,
+  context: string,
+) {
+  await clickStoryButton(page, "Next");
+  await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+  await expectDesktopContentContained(page, context);
+}
+
+async function walkDesktopFlowAndAssertContainment(page: Page) {
+  await page.goto("/");
+  await page.waitForFunction(
+    () => document.documentElement.dataset.storyHydrated === "true",
+  );
+
+  await expect(
+    page.getByRole("heading", { name: "Your Australian Budget Wrapped" }),
+  ).toBeVisible();
+  await expectDesktopContentContained(page, "desktop intro");
+
+  await clickStoryButton(page, "Start");
+  await expect(
+    page.getByRole("heading", { name: "What should we wrap?" }),
+  ).toBeVisible();
+  await expectDesktopContentContained(page, "desktop income input");
+
+  await page.getByLabel("Taxable income").fill("90000");
+  await clickStoryButton(page, "Next");
+  await expect(
+    page.getByRole("heading", { name: "Your tax estimate" }),
+  ).toBeVisible();
+  await expectDesktopContentContained(page, "desktop tax estimate");
+
+  await advanceDesktopAndAssert(
+    page,
+    "Bracket by bracket.",
+    "desktop bracket walk",
+  );
+  await advanceDesktopAndAssert(
+    page,
+    "Mapped across the Budget",
+    "desktop allocation",
+  );
+
+  const categoryHeadings = [
+    "Social security & welfare",
+    "Health",
+    "Education",
+    "Defence",
+    "Energy & resources",
+  ];
+
+  for (const [index, heading] of categoryHeadings.entries()) {
+    await advanceDesktopAndAssert(page, heading, `desktop category ${heading}`);
+
+    if (index === 0) {
+      await clickStoryButton(page, "Open breakdown");
+      await expect(
+        page.getByText(/to Social security and welfare\./),
+      ).toBeVisible();
+      await expectDesktopContentContained(page, "desktop drilldown");
+      await clickStoryButton(page, "Done");
+      await expect(
+        page.getByRole("heading", { name: "Social security & welfare" }),
+      ).toBeVisible();
+      await expectDesktopContentContained(
+        page,
+        "desktop category after drilldown",
+      );
+    }
+  }
+
+  await advanceDesktopAndAssert(
+    page,
+    "States and territories",
+    "desktop spotlight states",
+  );
+  await advanceDesktopAndAssert(
+    page,
+    "Debt interest",
+    "desktop spotlight debt",
+  );
+  await advanceDesktopAndAssert(
+    page,
+    "Your illustrative receipt",
+    "desktop final summary",
+  );
+  await advanceDesktopAndAssert(
+    page,
+    "Australia's 2025-26 Commonwealth bill.",
+    "desktop coda",
+  );
+}
+
 test.describe("drilldown row ordering", () => {
   for (const viewportWidth of [390, 430] as const) {
     test.describe(`${viewportWidth}px viewport`, () => {
@@ -555,36 +743,17 @@ test.describe("drilldown row ordering", () => {
 });
 
 test.describe("laptop story stage", () => {
-  test.use({ viewport: { width: 1280, height: 800 } });
+  for (const viewport of DESKTOP_CONTAINMENT_VIEWPORTS) {
+    test.describe(`${viewport.width}x${viewport.height}`, () => {
+      test.use({ viewport });
 
-  test("frames the same story flow with a desktop rail", async ({ page }) => {
-    await page.goto("/");
-    await page.waitForFunction(
-      () => document.documentElement.dataset.storyHydrated === "true",
-    );
-
-    await expect(page.locator(".story-desktop-rail")).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Your Australian Budget Wrapped" }),
-    ).toBeVisible();
-
-    const cardBox = await page.locator(".story-card").boundingBox();
-
-    expect(cardBox).not.toBeNull();
-    expect(cardBox?.y ?? 0).toBeGreaterThanOrEqual(0);
-    expect((cardBox?.y ?? 0) + (cardBox?.height ?? 0)).toBeLessThanOrEqual(800);
-
-    await clickStoryButton(page, "Start");
-    await page.getByLabel("Taxable income").fill("90000");
-    await clickStoryButton(page, "Next");
-
-    await expect(
-      page.getByRole("heading", { name: "Your tax estimate" }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Next", exact: true }),
-    ).toBeVisible();
-  });
+      test("keeps every desktop step inside the editorial layout container", async ({
+        page,
+      }) => {
+        await walkDesktopFlowAndAssertContainment(page);
+      });
+    });
+  }
 });
 
 test.describe("fit-to-width hero typography", () => {
