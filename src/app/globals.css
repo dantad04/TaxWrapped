@@ -232,6 +232,7 @@ button {
 
 .fit-text {
   max-width: 100%;
+  min-width: 0;
   overflow-wrap: normal;
   word-break: normal;
   hyphens: none;
@@ -477,6 +478,68 @@ button {
   min-height: 100%;
   align-content: start;
   gap: clamp(1rem, 3svh, 1.55rem);
+}
+
+@media (max-width: 899px) {
+  .story-content,
+  .story-moment {
+    min-width: 0;
+  }
+
+  .story-moment {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .story-card-intro .story-content {
+    padding-top: clamp(3.1rem, 8.6svh, 4.75rem);
+    padding-bottom: clamp(7.1rem, 17svh, 9.4rem);
+  }
+
+  .story-card-intro .story-moment {
+    min-height: 0;
+    gap: clamp(0.58rem, 1.55svh, 0.9rem);
+  }
+
+  .story-card-intro .story-title {
+    max-width: 9.45ch;
+  }
+
+  .story-card-intro .story-copy {
+    max-width: 19rem;
+    font-size: clamp(0.98rem, 3.6vw, 1.22rem);
+    line-height: 1.05;
+  }
+
+  .story-card-intro .story-caveat {
+    max-width: 18rem;
+    font-size: 0.78rem;
+    line-height: 1.16;
+  }
+
+  .bracket-walk-card .story-title {
+    width: 100%;
+  }
+
+  .story-controls-intro {
+    bottom: clamp(2.1rem, 5.8svh, 3.55rem);
+    width: min(10.4rem, 48%);
+  }
+
+  .story-controls-intro .story-controls-actions {
+    grid-template-columns: minmax(8.3rem, 10rem);
+  }
+
+  .story-controls-intro .story-main-button {
+    min-height: 2.85rem;
+    border-width: 2px;
+    font-size: 0.94rem;
+    box-shadow: 0.24rem 0.24rem 0 var(--story-shadow);
+  }
+
+  .story-card-intro .story-poster-year {
+    bottom: -2rem;
+  }
 }
 
 .story-card-tax,

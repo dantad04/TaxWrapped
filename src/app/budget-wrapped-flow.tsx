@@ -254,7 +254,7 @@ function FitText({
   suppressHydrationWarning,
 }: FitTextProps) {
   const ref = useRef<HTMLElement>(null);
-  const fontSize = useFitText({
+  const fit = useFitText({
     ref,
     minPx,
     maxPx,
@@ -267,10 +267,12 @@ function FitText({
     className: className ? `${className} fit-text` : "fit-text",
     "data-fit-max-px": maxPx,
     "data-fit-min-px": minPx,
+    "data-fit-ready": fit.isFitted ? "true" : "false",
     "data-hero-fit": fitId,
     style: {
       ...style,
-      fontSize: `${fontSize}px`,
+      fontSize: `${fit.fontSize}px`,
+      visibility: fit.visibility,
     },
     suppressHydrationWarning,
   };
@@ -320,6 +322,30 @@ function FitText({
       {children}
     </span>
   );
+}
+
+function useMobileFitMax(desktopMaxPx: number, mobileMaxPx: number) {
+  const [maxPx, setMaxPx] = useState(desktopMaxPx);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia("(max-width: 899px)");
+    const updateMaxPx = () => {
+      setMaxPx(mediaQuery.matches ? mobileMaxPx : desktopMaxPx);
+    };
+
+    updateMaxPx();
+    mediaQuery.addEventListener("change", updateMaxPx);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateMaxPx);
+    };
+  }, [desktopMaxPx, mobileMaxPx]);
+
+  return maxPx;
 }
 
 function AnimatedCurrency({
@@ -1048,6 +1074,7 @@ export function BudgetWrappedFlow() {
   const [stepIndex, setStepIndex] = useState(0);
   const [incomeInput, setIncomeInput] = useState("");
   const [activeDrilldownPath, setActiveDrilldownPath] = useState<string[]>([]);
+  const introTitleMaxPx = useMobileFitMax(78, 58);
   const taxableIncome = parseIncome(incomeInput);
   const hasIncome = taxableIncome !== null;
 
@@ -1261,7 +1288,7 @@ export function BudgetWrappedFlow() {
             className="story-title"
             deps={[currentStep.title]}
             fitId="intro-title"
-            maxPx={78}
+            maxPx={introTitleMaxPx}
             minPx={34}
           >
             {currentStep.title}

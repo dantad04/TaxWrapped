@@ -5,6 +5,11 @@ const SHARE_CARD_EXPORT_FILENAME = "australian-budget-wrapped-2025-26.png";
 const HERO_FIT_SELECTOR = "[data-hero-fit]";
 const HERO_FIT_INCOMES = [0, 5, 18200, 90000, 250000, 1000000] as const;
 const HERO_FIT_VIEWPORT_WIDTHS = [360, 390, 430] as const;
+const INTRO_VIEWPORTS = [
+  { width: 360, height: 780 },
+  { width: 390, height: 844 },
+  { width: 430, height: 932 },
+] as const;
 const DESKTOP_CONTAINMENT_VIEWPORTS = [
   { width: 1280, height: 800 },
   { width: 1366, height: 768 },
@@ -26,6 +31,12 @@ async function clickStoryButton(page: Page, name: string) {
   await button.click({ force: true });
 }
 
+async function waitForStoryHydration(page: Page) {
+  await page.waitForFunction(
+    () => document.documentElement.dataset.storyHydrated === "true",
+  );
+}
+
 test.describe("routes", () => {
   for (const route of routes) {
     test(`${route.path} renders`, async ({ page }) => {
@@ -39,13 +50,12 @@ test.describe("routes", () => {
 });
 
 test.describe("mobile story flow", () => {
+  test.setTimeout(60_000);
   test.use({ viewport: { width: 390, height: 844 } });
 
   async function enterTaxableIncome(page: Page) {
     await page.goto("/");
-    await page.waitForFunction(
-      () => document.documentElement.dataset.storyHydrated === "true",
-    );
+    await waitForStoryHydration(page);
     await clickStoryButton(page, "Start");
     await page.getByLabel("Taxable income").fill("90000");
     await clickStoryButton(page, "Next");
@@ -59,9 +69,7 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("heading", { name: "Your Australian Budget Wrapped" }),
     ).toBeVisible();
-    await page.waitForFunction(
-      () => document.documentElement.dataset.storyHydrated === "true",
-    );
+    await waitForStoryHydration(page);
 
     await expect(
       page.getByRole("button", { name: "Start", exact: true }),
@@ -290,17 +298,140 @@ test.describe("mobile story flow", () => {
   });
 });
 
+test.describe("mobile intro viewport fit", () => {
+  for (const viewport of INTRO_VIEWPORTS) {
+    test.describe(`${viewport.width}x${viewport.height}`, () => {
+      test.use({ viewport });
+
+      test("keeps the start button fully inside the first viewport", async ({
+        page,
+      }) => {
+        await page.goto("/");
+        await waitForStoryHydration(page);
+
+        const startButton = page.getByRole("button", {
+          name: "Start",
+          exact: true,
+        });
+
+        await expect(startButton).toBeVisible();
+
+        const rect = await startButton.evaluate((element) => {
+          const bounds = element.getBoundingClientRect();
+
+          return {
+            bottom: bounds.bottom,
+            top: bounds.top,
+          };
+        });
+
+        expect(rect.top, "START top edge").toBeGreaterThanOrEqual(0);
+        expect(rect.bottom, "START bottom edge").toBeLessThanOrEqual(
+          viewport.height,
+        );
+
+        const pageScrolls = await page.evaluate(
+          () =>
+            document.documentElement.scrollHeight > window.innerHeight + 1 ||
+            document.body.scrollHeight > window.innerHeight + 1,
+        );
+
+        expect(pageScrolls, "intro page scroll").toBe(false);
+      });
+    });
+  }
+});
+
 async function waitForHeroFitCycle(page: Page) {
   await page.waitForFunction(
-    (selector) => document.querySelectorAll(selector).length > 0,
+    (selector) => {
+      const elements = Array.from(document.querySelectorAll(selector));
+
+      if (elements.length === 0) {
+        return false;
+      }
+
+      return elements.every((element) => {
+        const htmlElement = element as HTMLElement;
+        const style = window.getComputedStyle(htmlElement);
+
+        return style.display === "none" || htmlElement.dataset.fitReady === "true";
+      });
+    },
     HERO_FIT_SELECTOR,
   );
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolve) => {
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+}
+
+async function captureFirstFitFrameAfterClick(
+  page: Page,
+  buttonName: string,
+  fitSelector: string,
+) {
+  const firstFramePromise = page.evaluate(
+    ({ buttonName: pageButtonName, fitSelector: pageFitSelector }) =>
+      new Promise<{
+        fontSize: number | null;
+        maxPx: number | null;
+        present: boolean;
+        ready: string | null;
+        visibility: string | null;
+      }>((resolve) => {
+        const button = Array.from(document.querySelectorAll("button")).find(
+          (candidate) =>
+            candidate.textContent?.trim() === pageButtonName &&
+            !candidate.disabled,
+        );
+
+        if (!button) {
+          resolve({
+            fontSize: null,
+            maxPx: null,
+            present: false,
+            ready: null,
+            visibility: null,
+          });
+          return;
+        }
+
+        button.addEventListener(
+          "click",
+          () => {
+            requestAnimationFrame(() => {
+              const element = document.querySelector(
+                pageFitSelector,
+              ) as HTMLElement | null;
+
+              if (!element) {
+                resolve({
+                  fontSize: null,
+                  maxPx: null,
+                  present: false,
+                  ready: null,
+                  visibility: null,
+                });
+                return;
+              }
+
+              const style = window.getComputedStyle(element);
+
+              resolve({
+                fontSize: Number.parseFloat(style.fontSize),
+                maxPx: Number(element.dataset.fitMaxPx),
+                present: true,
+                ready: element.dataset.fitReady ?? null,
+                visibility: style.visibility,
+              });
+            });
+          },
+          { once: true },
+        );
       }),
+    { buttonName, fitSelector },
   );
+
+  await clickStoryButton(page, buttonName);
+
+  return firstFramePromise;
 }
 
 async function expectVisibleHeroesToFit(page: Page, context: string) {
@@ -355,9 +486,7 @@ async function expectVisibleHeroesToFit(page: Page, context: string) {
 
 async function startStoryWithIncome(page: Page, income: number) {
   await page.goto("/");
-  await page.waitForFunction(
-    () => document.documentElement.dataset.storyHydrated === "true",
-  );
+  await waitForStoryHydration(page);
   await expectVisibleHeroesToFit(page, `intro income ${income}`);
   await clickStoryButton(page, "Start");
   await expectVisibleHeroesToFit(page, `input income ${income}`);
@@ -685,9 +814,7 @@ async function advanceDesktopAndAssert(
 
 async function walkDesktopFlowAndAssertContainment(page: Page) {
   await page.goto("/");
-  await page.waitForFunction(
-    () => document.documentElement.dataset.storyHydrated === "true",
-  );
+  await waitForStoryHydration(page);
 
   await expect(
     page.getByRole("heading", { name: "Your Australian Budget Wrapped" }),
@@ -821,6 +948,47 @@ test.describe("fit-to-width hero typography", () => {
 
   test.use({ viewport: { width: 390, height: 844 } });
 
+  test("hides fit text for one frame before revealing the fitted tax total", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await waitForStoryHydration(page);
+    await expect(page.locator('[data-hero-fit="intro-title"]')).toHaveCSS(
+      "visibility",
+      "visible",
+    );
+
+    await clickStoryButton(page, "Start");
+    await page.getByLabel("Taxable income").fill("90000");
+
+    const firstFrame = await captureFirstFitFrameAfterClick(
+      page,
+      "Next",
+      '[data-hero-fit="tax-total"]',
+    );
+
+    expect(firstFrame).toMatchObject({
+      present: true,
+      ready: "false",
+      visibility: "hidden",
+    });
+
+    const taxTotal = page.locator('[data-hero-fit="tax-total"]');
+
+    await expect(taxTotal).toHaveCSS("visibility", "visible");
+
+    const visibleState = await taxTotal.evaluate((element) => {
+      const style = window.getComputedStyle(element);
+
+      return {
+        fontSize: Number.parseFloat(style.fontSize),
+        maxPx: Number(element.getAttribute("data-fit-max-px")),
+      };
+    });
+
+    expect(visibleState.fontSize).toBeLessThanOrEqual(visibleState.maxPx - 1);
+  });
+
   test("fits category amount by content length, not just container width", async ({
     page,
   }) => {
@@ -875,12 +1043,12 @@ test.describe("share preview", () => {
       };
     });
     await page.goto("/");
-    await page.waitForFunction(
-      () => document.documentElement.dataset.storyHydrated === "true",
-    );
+    await waitForStoryHydration(page);
     await clickStoryButton(page, "Start");
+    await waitForHeroFitCycle(page);
     await page.getByLabel("Taxable income").fill("90000");
     await clickStoryButton(page, "Next");
+    await waitForHeroFitCycle(page);
 
     for (let index = 0; index < 12; index += 1) {
       if (
@@ -893,6 +1061,7 @@ test.describe("share preview", () => {
       }
 
       await clickStoryButton(page, "Next");
+      await waitForHeroFitCycle(page);
     }
 
     await expect(

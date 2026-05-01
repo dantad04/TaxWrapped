@@ -1,6 +1,6 @@
 "use client";
 
-import type { RefObject } from "react";
+import type { CSSProperties, RefObject } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export const FIT_TEXT_BINARY_SEARCH_STEPS = 8;
@@ -11,6 +11,17 @@ interface UseFitTextOptions<T extends HTMLElement> {
   maxPx: number;
   deps?: readonly unknown[];
   paddingPx?: number;
+}
+
+interface FitTextState {
+  fontSize: number;
+  fittedKey: string | null;
+}
+
+interface FitTextResult {
+  fontSize: number;
+  isFitted: boolean;
+  visibility: CSSProperties["visibility"];
 }
 
 function canMeasureText() {
@@ -36,13 +47,43 @@ export function useFitText<T extends HTMLElement>({
   maxPx,
   deps = [],
   paddingPx = 4,
-}: UseFitTextOptions<T>) {
+}: UseFitTextOptions<T>): FitTextResult {
   const minimum = Math.min(minPx, maxPx);
   const maximum = Math.max(minPx, maxPx);
-  const [fontSize, setFontSize] = useState(maximum);
+  const depsKey = useMemo(() => dependencyKey(deps), [deps]);
+  const fitKey = useMemo(
+    () => [minimum, maximum, paddingPx, depsKey].join("\u0002"),
+    [depsKey, maximum, minimum, paddingPx],
+  );
+  const [fitState, setFitState] = useState<FitTextState>({
+    fontSize: maximum,
+    fittedKey: null,
+  });
   const frameRef = useRef<number | null>(null);
   const mountedRef = useRef(false);
-  const depsKey = useMemo(() => dependencyKey(deps), [deps]);
+  const isFitted = fitState.fittedKey === fitKey;
+  const fontSize = isFitted ? fitState.fontSize : maximum;
+
+  const setMeasuredFontSize = useCallback(
+    (nextFontSize: number) => {
+      const roundedFontSize = Number(nextFontSize.toFixed(2));
+
+      setFitState((current) => {
+        if (
+          current.fontSize === roundedFontSize &&
+          current.fittedKey === fitKey
+        ) {
+          return current;
+        }
+
+        return {
+          fontSize: roundedFontSize,
+          fittedKey: fitKey,
+        };
+      });
+    },
+    [fitKey],
+  );
 
   const cancelFit = useCallback(() => {
     if (frameRef.current !== null && canMeasureText()) {
@@ -53,7 +94,7 @@ export function useFitText<T extends HTMLElement>({
 
   const scheduleFit = useCallback(() => {
     if (!canMeasureText()) {
-      setFontSize(maximum);
+      setMeasuredFontSize(maximum);
       return;
     }
 
@@ -67,7 +108,7 @@ export function useFitText<T extends HTMLElement>({
 
       if (!element || !parent) {
         if (mountedRef.current) {
-          setFontSize(maximum);
+          setMeasuredFontSize(maximum);
         }
         return;
       }
@@ -76,7 +117,7 @@ export function useFitText<T extends HTMLElement>({
 
       if (availableWidth <= 0) {
         if (mountedRef.current) {
-          setFontSize(minimum);
+          setMeasuredFontSize(minimum);
         }
         return;
       }
@@ -88,7 +129,12 @@ export function useFitText<T extends HTMLElement>({
 
       const fitsAt = (candidateFontSize: number) => {
         element.style.fontSize = `${candidateFontSize}px`;
-        return element.scrollWidth <= availableWidth + 0.5;
+        const constrainedWidth = Math.min(
+          availableWidth,
+          element.clientWidth || availableWidth,
+        );
+
+        return element.scrollWidth <= constrainedWidth + 0.5;
       };
 
       if (fitsAt(maximum)) {
@@ -109,10 +155,17 @@ export function useFitText<T extends HTMLElement>({
       restoreFontSize(element, previousFontSize);
 
       if (mountedRef.current) {
-        setFontSize(Number(fitted.toFixed(2)));
+        setMeasuredFontSize(fitted);
       }
     });
-  }, [cancelFit, maximum, minimum, paddingPx, ref]);
+  }, [
+    cancelFit,
+    maximum,
+    minimum,
+    paddingPx,
+    ref,
+    setMeasuredFontSize,
+  ]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -147,7 +200,12 @@ export function useFitText<T extends HTMLElement>({
       observer.disconnect();
       cancelFit();
     };
-  }, [cancelFit, depsKey, maximum, ref, scheduleFit]);
+  }, [cancelFit, ref, scheduleFit]);
 
-  return fontSize;
+  return {
+    fontSize,
+    isFitted,
+    // Keep layout measurable while preventing oversized fit-text FOUC.
+    visibility: isFitted ? "visible" : "hidden",
+  };
 }

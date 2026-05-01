@@ -23,7 +23,7 @@ function FitTextHarness({
   width: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const fontSize = useFitText({
+  const fit = useFitText({
     ref,
     minPx,
     maxPx,
@@ -46,17 +46,22 @@ function FitTextHarness({
       configurable: true,
       get: () => {
         const measuredFontSize = Number.parseFloat(
-          element.style.fontSize || `${fontSize}`,
+          element.style.fontSize || `${fit.fontSize}`,
         );
 
         return content.length * characterWidthFactor * measuredFontSize;
       },
     });
-  }, [characterWidthFactor, content, fontSize, width]);
+  }, [characterWidthFactor, content, fit.fontSize, width]);
 
   return (
     <div>
-      <div data-testid="fit-text" ref={ref} style={{ fontSize }}>
+      <div
+        data-fit-ready={fit.isFitted ? "true" : "false"}
+        data-testid="fit-text"
+        ref={ref}
+        style={{ fontSize: fit.fontSize, visibility: fit.visibility }}
+      >
         {content}
       </div>
     </div>
@@ -65,6 +70,10 @@ function FitTextHarness({
 
 function getRenderedFontSize() {
   return Number.parseFloat(screen.getByTestId("fit-text").style.fontSize);
+}
+
+function getRenderedVisibility() {
+  return screen.getByTestId("fit-text").style.visibility;
 }
 
 beforeEach(() => {
@@ -89,6 +98,7 @@ describe("useFitText", () => {
     );
 
     await waitFor(() => expect(getRenderedFontSize()).toBe(180));
+    await waitFor(() => expect(getRenderedVisibility()).toBe("visible"));
   });
 
   it("returns a value below max when text exceeds the container", async () => {
@@ -143,14 +153,14 @@ describe("useFitText", () => {
   it("returns max on the server when there is no window", () => {
     function ServerHarness() {
       const ref = useRef<HTMLDivElement>(null);
-      const fontSize = useFitText({
+      const fit = useFitText({
         ref,
         minPx: 40,
         maxPx: 180,
         deps: ["$1,000,000"],
       });
 
-      return <div style={{ fontSize }}>{fontSize}</div>;
+      return <div style={{ fontSize: fit.fontSize }}>{fit.fontSize}</div>;
     }
 
     const originalWindow = globalThis.window;

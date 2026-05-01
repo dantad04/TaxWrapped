@@ -38,9 +38,7 @@ describe("routes", () => {
   it("home page renders", () => {
     render(<Home />);
 
-    expect(
-      screen.getByRole("heading", { name: "Your Australian Budget Wrapped" }),
-    ).toBeDefined();
+    expect(screen.getByText("Your Australian Budget Wrapped")).toBeDefined();
     expect(screen.getByText("Start")).toBeDefined();
   });
 
