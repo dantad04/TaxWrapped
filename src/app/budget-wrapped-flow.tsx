@@ -727,6 +727,27 @@ function AustraliaReceiptCodaCard({
           { href: "/privacy", label: "Privacy" },
         ]}
       />
+      <p className="coda-credit" data-testid="coda-credit">
+        Made by Dan Tadmore{" "}
+        <span aria-hidden="true">·</span>{" "}
+        <a
+          href="https://asxdirectortrades.com.au/"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          ASX Director Trades
+        </a>{" "}
+        <span aria-hidden="true">·</span>{" "}
+        <a
+          href="https://www.linkedin.com/in/dan-tadmore-158077210"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          LinkedIn
+        </a>{" "}
+        <span aria-hidden="true">·</span>{" "}
+        <a href="mailto:dan.tadmore@gmail.com">Email</a>
+      </p>
     </section>
   );
 }

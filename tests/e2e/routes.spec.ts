@@ -306,6 +306,76 @@ test.describe("mobile story flow", () => {
       page.getByRole("heading", { name: "Sources" }),
     ).toBeVisible();
   });
+
+  test("shows author credit links only on the coda card", async ({ page }) => {
+    await enterTaxableIncome(page);
+    await expect(page.getByTestId("coda-credit")).toHaveCount(0);
+
+    const stepsBeforeCoda = [
+      "Bracket by bracket.",
+      "Mapped across the Budget",
+      "Social security & welfare",
+      "Health",
+      "Education",
+      "Defence",
+      "Energy & resources",
+      "States and territories",
+      "Debt interest",
+      "Your illustrative receipt",
+    ];
+
+    for (const heading of stepsBeforeCoda) {
+      await clickStoryButton(page, "Next");
+      await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+      await expect(page.getByTestId("coda-credit")).toHaveCount(0);
+    }
+
+    await clickStoryButton(page, "Next");
+    await expect(
+      page.getByRole("heading", {
+        name: "Australia's 2025-26 Commonwealth bill.",
+      }),
+    ).toBeVisible();
+
+    const codaCredit = page.locator(".story-card-coda").getByTestId("coda-credit");
+
+    await expect(codaCredit).toContainText(
+      "Made by Dan Tadmore · ASX Director Trades · LinkedIn · Email",
+    );
+    await expect(
+      page.locator(".story-card:not(.story-card-coda)").getByTestId("coda-credit"),
+    ).toHaveCount(0);
+
+    const asxLink = codaCredit.getByRole("link", {
+      name: "ASX Director Trades",
+    });
+    const linkedInLink = codaCredit.getByRole("link", { name: "LinkedIn" });
+    const emailLink = codaCredit.getByRole("link", { name: "Email" });
+
+    await expect(asxLink).toHaveAttribute(
+      "href",
+      "https://asxdirectortrades.com.au/",
+    );
+    await expect(asxLink).toHaveAttribute("target", "_blank");
+    expect((await asxLink.getAttribute("rel"))?.split(/\s+/)).toEqual(
+      expect.arrayContaining(["noopener"]),
+    );
+
+    await expect(linkedInLink).toHaveAttribute(
+      "href",
+      "https://www.linkedin.com/in/dan-tadmore-158077210",
+    );
+    await expect(linkedInLink).toHaveAttribute("target", "_blank");
+    expect((await linkedInLink.getAttribute("rel"))?.split(/\s+/)).toEqual(
+      expect.arrayContaining(["noopener"]),
+    );
+
+    await expect(emailLink).toHaveAttribute(
+      "href",
+      "mailto:dan.tadmore@gmail.com",
+    );
+    await expect(emailLink).not.toHaveAttribute("target", "_blank");
+  });
 });
 
 test.describe("mobile intro viewport fit", () => {
