@@ -21,6 +21,7 @@ interface FitTextState {
 interface FitTextResult {
   fontSize: number;
   isFitted: boolean;
+  opacity: CSSProperties["opacity"];
   visibility: CSSProperties["visibility"];
 }
 
@@ -205,6 +206,7 @@ export function useFitText<T extends HTMLElement>({
   return {
     fontSize,
     isFitted,
+    opacity: isFitted ? 1 : 0,
     // Keep layout measurable while preventing oversized fit-text FOUC.
     visibility: isFitted ? "visible" : "hidden",
   };

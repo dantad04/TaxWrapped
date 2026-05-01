@@ -5,6 +5,7 @@ const SHARE_CARD_EXPORT_FILENAME = "australian-budget-wrapped-2025-26.png";
 const HERO_FIT_SELECTOR = "[data-hero-fit]";
 const HERO_FIT_INCOMES = [0, 5, 18200, 90000, 250000, 1000000] as const;
 const HERO_FIT_VIEWPORT_WIDTHS = [360, 390, 430] as const;
+const FLOW_VIEWPORT_FIT_INCOMES = [5, 90000, 1000000] as const;
 const INTRO_VIEWPORTS = [
   { width: 360, height: 780 },
   { width: 390, height: 844 },
@@ -34,6 +35,15 @@ async function clickStoryButton(page: Page, name: string) {
 async function waitForStoryHydration(page: Page) {
   await page.waitForFunction(
     () => document.documentElement.dataset.storyHydrated === "true",
+  );
+}
+
+async function waitForAnimationFrame(page: Page) {
+  await page.waitForFunction(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      }),
   );
 }
 
@@ -342,6 +352,79 @@ test.describe("mobile intro viewport fit", () => {
   }
 });
 
+async function expectMobileStepToFitViewport(
+  page: Page,
+  viewport: (typeof INTRO_VIEWPORTS)[number],
+  context: string,
+) {
+  await waitForHeroFitCycle(page);
+  await waitForAnimationFrame(page);
+
+  const metrics = await page.evaluate(() => {
+    const card = document.querySelector(".story-card") as HTMLElement | null;
+    const step = card?.dataset.step ?? "unknown";
+    const isVisible = (element: Element | null): element is HTMLElement => {
+      if (!(element instanceof HTMLElement)) {
+        return false;
+      }
+
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+
+      return (
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        rect.width > 0 &&
+        rect.height > 0
+      );
+    };
+    const detailButton =
+      step === "category"
+        ? Array.from(document.querySelectorAll(".story-detail-button")).find(
+            isVisible,
+          )
+        : null;
+    const restartButton =
+      step === "coda"
+        ? document.querySelector('.story-icon-button[aria-label="Restart"]')
+        : null;
+    const mainButton = document.querySelector(".story-main-button");
+    const cta = detailButton ?? restartButton ?? mainButton;
+    const ctaRect = cta instanceof HTMLElement ? cta.getBoundingClientRect() : null;
+
+    return {
+      bodyScrollHeight: document.body.scrollHeight,
+      cta: ctaRect
+        ? {
+            bottom: ctaRect.bottom,
+            label:
+              cta instanceof HTMLButtonElement
+                ? cta.textContent?.trim() || cta.getAttribute("aria-label")
+                : cta?.textContent?.trim() ?? null,
+            top: ctaRect.top,
+          }
+        : null,
+      documentScrollHeight: document.documentElement.scrollHeight,
+      step,
+    };
+  });
+
+  expect(metrics.bodyScrollHeight, `${context} body scroll height`).toBeLessThanOrEqual(
+    viewport.height + 1,
+  );
+  expect(
+    metrics.documentScrollHeight,
+    `${context} document scroll height`,
+  ).toBeLessThanOrEqual(viewport.height + 1);
+  expect(metrics.cta, `${context} primary CTA`).not.toBeNull();
+  expect(metrics.cta?.top, `${context} primary CTA top`).toBeGreaterThanOrEqual(
+    0,
+  );
+  expect(metrics.cta?.bottom, `${context} primary CTA bottom`).toBeLessThanOrEqual(
+    viewport.height,
+  );
+}
+
 async function waitForHeroFitCycle(page: Page) {
   await page.waitForFunction(
     (selector) => {
@@ -372,6 +455,7 @@ async function captureFirstFitFrameAfterClick(
       new Promise<{
         fontSize: number | null;
         maxPx: number | null;
+        opacity: number | null;
         present: boolean;
         ready: string | null;
         visibility: string | null;
@@ -386,6 +470,7 @@ async function captureFirstFitFrameAfterClick(
           resolve({
             fontSize: null,
             maxPx: null,
+            opacity: null,
             present: false,
             ready: null,
             visibility: null,
@@ -405,6 +490,7 @@ async function captureFirstFitFrameAfterClick(
                 resolve({
                   fontSize: null,
                   maxPx: null,
+                  opacity: null,
                   present: false,
                   ready: null,
                   visibility: null,
@@ -417,6 +503,7 @@ async function captureFirstFitFrameAfterClick(
               resolve({
                 fontSize: Number.parseFloat(style.fontSize),
                 maxPx: Number(element.dataset.fitMaxPx),
+                opacity: Number.parseFloat(style.opacity),
                 present: true,
                 ready: element.dataset.fitReady ?? null,
                 visibility: style.visibility,
@@ -432,6 +519,108 @@ async function captureFirstFitFrameAfterClick(
   await clickStoryButton(page, buttonName);
 
   return firstFramePromise;
+}
+
+async function captureFirstHeroFitFrameAfterClick(
+  page: Page,
+  buttonName: string,
+) {
+  const firstFramePromise = page.evaluate(
+    (pageButtonName) =>
+      new Promise<
+        {
+          fitId: string | null;
+          opacity: number;
+          ready: string | null;
+          visibility: string;
+        }[]
+      >((resolve) => {
+        const button = Array.from(document.querySelectorAll("button")).find(
+          (candidate) =>
+            candidate.textContent?.trim() === pageButtonName &&
+            !candidate.disabled,
+        );
+
+        if (!button) {
+          resolve([]);
+          return;
+        }
+
+        button.addEventListener(
+          "click",
+          () => {
+            requestAnimationFrame(() => {
+              const elements = Array.from(
+                document.querySelectorAll(".story-content [data-hero-fit]"),
+              ) as HTMLElement[];
+
+              resolve(
+                elements.map((element) => {
+                  const style = window.getComputedStyle(element);
+
+                  return {
+                    fitId: element.dataset.heroFit ?? null,
+                    opacity: Number.parseFloat(style.opacity),
+                    ready: element.dataset.fitReady ?? null,
+                    visibility: style.visibility,
+                  };
+                }),
+              );
+            });
+          },
+          { once: true },
+        );
+      }),
+    buttonName,
+  );
+
+  await clickStoryButton(page, buttonName);
+
+  return firstFramePromise;
+}
+
+async function clickAndAssertTransitionHidesHero(
+  page: Page,
+  buttonName: string,
+  context: string,
+) {
+  const firstFrame = await captureFirstHeroFitFrameAfterClick(page, buttonName);
+
+  expect(firstFrame.length, `${context} first-frame heroes`).toBeGreaterThan(0);
+  expect(
+    firstFrame.some(
+      (hero) => hero.visibility === "hidden" || hero.opacity === 0,
+    ),
+    `${context} hidden or transparent first-frame hero`,
+  ).toBe(true);
+
+  await waitForHeroFitCycle(page);
+  await page.waitForFunction(() => {
+    const elements = Array.from(
+      document.querySelectorAll(".story-content [data-hero-fit]"),
+    );
+
+    return elements.every((element) => {
+      const style = window.getComputedStyle(element);
+
+      return style.visibility === "visible" && Number.parseFloat(style.opacity) > 0;
+    });
+  });
+
+  const stillHidden = await page
+    .locator(".story-content [data-hero-fit]")
+    .evaluateAll((elements) =>
+      elements.flatMap((element) => {
+        const htmlElement = element as HTMLElement;
+        const style = window.getComputedStyle(htmlElement);
+
+        return style.visibility === "hidden" || Number.parseFloat(style.opacity) === 0
+          ? [htmlElement.dataset.heroFit ?? htmlElement.textContent?.trim() ?? ""]
+          : [];
+      }),
+    );
+
+  expect(stillHidden, `${context} revealed heroes`).toEqual([]);
 }
 
 async function expectVisibleHeroesToFit(page: Page, context: string) {
@@ -559,6 +748,144 @@ async function walkFlowAndAssertHeroFit(page: Page, income: number) {
     `coda income ${income}`,
   );
 }
+
+async function advanceAndAssertMobileViewportFit(
+  page: Page,
+  heading: string | RegExp,
+  viewport: (typeof INTRO_VIEWPORTS)[number],
+  context: string,
+) {
+  await clickStoryButton(page, "Next");
+  await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+  await expectMobileStepToFitViewport(page, viewport, context);
+}
+
+async function walkFlowAndAssertMobileViewportFit(
+  page: Page,
+  income: number,
+  viewport: (typeof INTRO_VIEWPORTS)[number],
+) {
+  await page.goto("/");
+  await waitForStoryHydration(page);
+
+  await expect(
+    page.getByRole("heading", { name: "Your Australian Budget Wrapped" }),
+  ).toBeVisible();
+  await expectMobileStepToFitViewport(
+    page,
+    viewport,
+    `intro income ${income}`,
+  );
+
+  await clickStoryButton(page, "Start");
+  await expect(
+    page.getByRole("heading", { name: "What should we wrap?" }),
+  ).toBeVisible();
+  await expectMobileStepToFitViewport(
+    page,
+    viewport,
+    `income input ${income}`,
+  );
+
+  await page.getByLabel("Taxable income").fill(String(income));
+  await clickStoryButton(page, "Next");
+  await expect(
+    page.getByRole("heading", { name: "Your tax estimate" }),
+  ).toBeVisible();
+  await expectMobileStepToFitViewport(page, viewport, `tax income ${income}`);
+
+  await advanceAndAssertMobileViewportFit(
+    page,
+    "Bracket by bracket.",
+    viewport,
+    `bracket income ${income}`,
+  );
+  await advanceAndAssertMobileViewportFit(
+    page,
+    "Mapped across the Budget",
+    viewport,
+    `allocation income ${income}`,
+  );
+
+  const categoryHeadings = [
+    "Social security & welfare",
+    "Health",
+    "Education",
+    "Defence",
+    "Energy & resources",
+  ];
+
+  for (const [index, heading] of categoryHeadings.entries()) {
+    await advanceAndAssertMobileViewportFit(
+      page,
+      heading,
+      viewport,
+      `${heading} income ${income}`,
+    );
+
+    if (index === 0) {
+      await clickStoryButton(page, "Open breakdown");
+      await expect(
+        page.getByText(/to Social security and welfare\./),
+      ).toBeVisible();
+      await expectMobileStepToFitViewport(
+        page,
+        viewport,
+        `drilldown ${heading} income ${income}`,
+      );
+      await clickStoryButton(page, "Done");
+      await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+      await expectMobileStepToFitViewport(
+        page,
+        viewport,
+        `${heading} after drilldown income ${income}`,
+      );
+    }
+  }
+
+  await advanceAndAssertMobileViewportFit(
+    page,
+    "States and territories",
+    viewport,
+    `states income ${income}`,
+  );
+  await advanceAndAssertMobileViewportFit(
+    page,
+    "Debt interest",
+    viewport,
+    `debt income ${income}`,
+  );
+  await advanceAndAssertMobileViewportFit(
+    page,
+    "Your illustrative receipt",
+    viewport,
+    `summary income ${income}`,
+  );
+  await advanceAndAssertMobileViewportFit(
+    page,
+    "Australia's 2025-26 Commonwealth bill.",
+    viewport,
+    `coda income ${income}`,
+  );
+}
+
+test.describe("mobile flow viewport fit", () => {
+  test.setTimeout(180_000);
+
+  for (const viewport of INTRO_VIEWPORTS) {
+    test.describe(`${viewport.width}x${viewport.height}`, () => {
+      test.use({ viewport });
+
+      for (const income of FLOW_VIEWPORT_FIT_INCOMES) {
+        test(`keeps every step within one viewport for taxable income ${income}`, async ({
+          page,
+        }) => {
+          await walkFlowAndAssertMobileViewportFit(page, income, viewport);
+        });
+      }
+    });
+  }
+});
 
 async function openSocialSecurityDrilldown(page: Page) {
   await startStoryWithIncome(page, 90000);
@@ -987,6 +1314,60 @@ test.describe("fit-to-width hero typography", () => {
     });
 
     expect(visibleState.fontSize).toBeLessThanOrEqual(visibleState.maxPx - 1);
+  });
+
+  test("hides new step hero text for one frame across transitions", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await waitForStoryHydration(page);
+    await expect(page.locator('[data-hero-fit="intro-title"]')).toHaveCSS(
+      "visibility",
+      "visible",
+    );
+
+    await clickAndAssertTransitionHidesHero(page, "Start", "intro to input");
+    await expect(
+      page.getByRole("heading", { name: "What should we wrap?" }),
+    ).toBeVisible();
+
+    await page.getByLabel("Taxable income").fill("90000");
+    await clickAndAssertTransitionHidesHero(page, "Next", "input to tax");
+    await expect(
+      page.getByRole("heading", { name: "Your tax estimate" }),
+    ).toBeVisible();
+
+    await clickAndAssertTransitionHidesHero(page, "Next", "tax to bracket");
+    await expect(
+      page.getByRole("heading", { name: "Bracket by bracket." }),
+    ).toBeVisible();
+
+    await clickAndAssertTransitionHidesHero(
+      page,
+      "Next",
+      "bracket to allocation",
+    );
+    await expect(
+      page.getByRole("heading", { name: "Mapped across the Budget" }),
+    ).toBeVisible();
+
+    await clickAndAssertTransitionHidesHero(
+      page,
+      "Next",
+      "allocation to category",
+    );
+    await expect(
+      page.getByRole("heading", { name: "Social security & welfare" }),
+    ).toBeVisible();
+
+    await clickAndAssertTransitionHidesHero(
+      page,
+      "Open breakdown",
+      "category to drilldown",
+    );
+    await expect(
+      page.getByText(/to Social security and welfare\./),
+    ).toBeVisible();
   });
 
   test("fits category amount by content length, not just container width", async ({

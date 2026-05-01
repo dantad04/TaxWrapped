@@ -47,8 +47,8 @@ button {
 .story-shell {
   position: relative;
   isolation: isolate;
-  height: 100svh;
-  min-height: 100svh;
+  height: 100dvh;
+  min-height: 100dvh;
   background:
     linear-gradient(90deg, rgba(46, 85, 255, 0.28) 0 0.38rem, transparent 0.38rem 2.15rem),
     linear-gradient(180deg, #080808 0%, #171719 52%, #080808 100%);
@@ -80,7 +80,7 @@ button {
   --story-soft-a: #c5d8da;
   --story-soft-b: #ddc5c8;
   width: min(100%, 31.5rem);
-  min-height: calc(100svh - clamp(1rem, 3.4vw, 2rem));
+  min-height: calc(100dvh - clamp(1rem, 3.4vw, 2rem));
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -236,6 +236,7 @@ button {
   overflow-wrap: normal;
   word-break: normal;
   hyphens: none;
+  transition: opacity 120ms ease-out;
 }
 
 .story-copy {
@@ -481,14 +482,78 @@ button {
 }
 
 @media (max-width: 899px) {
+  .story-shell {
+    padding: clamp(0.36rem, 1.28dvh, 0.64rem);
+  }
+
+  .story-desktop-stage {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .story-card {
+    --step-content-pad: clamp(0.4rem, 1.25dvh, 0.72rem);
+    --step-gap: clamp(0.4rem, 1.22dvh, 0.72rem);
+    height: calc(100dvh - clamp(0.72rem, 2.56dvh, 1.28rem));
+    min-height: 0;
+    max-height: calc(100dvh - clamp(0.72rem, 2.56dvh, 1.28rem));
+    display: flex;
+    flex-direction: column;
+    border-radius: clamp(1.35rem, 6.6vw, 2.6rem);
+    padding: clamp(0.72rem, 2.35dvh, 1.05rem);
+  }
+
+  .story-topbar,
+  .story-progress,
+  .story-controls {
+    flex: 0 0 auto;
+  }
+
+  .story-progress {
+    height: 0.25rem;
+    margin-top: clamp(0.32rem, 0.82dvh, 0.48rem);
+  }
+
   .story-content,
   .story-moment {
     min-width: 0;
   }
 
+  .story-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    align-items: stretch;
+    padding-block: var(--step-content-pad);
+  }
+
   .story-moment {
     grid-template-columns: minmax(0, 1fr);
     width: 100%;
+    height: 100%;
+    max-height: 100%;
+    gap: var(--step-gap);
+    overflow: hidden;
+  }
+
+  .story-controls-actions {
+    grid-template-columns: 2.72rem minmax(0, 1fr) 2.72rem;
+    gap: clamp(0.42rem, 1.3dvh, 0.62rem);
+  }
+
+  .story-main-button,
+  .story-icon-button {
+    min-height: clamp(2.54rem, 6.45dvh, 3.02rem);
+    border-width: 2px;
+    box-shadow: 0.22rem 0.22rem 0 var(--story-shadow);
+  }
+
+  .story-main-button {
+    font-size: clamp(0.88rem, 3.7vw, 0.98rem);
+  }
+
+  .story-icon-button {
+    font-size: 1.2rem;
   }
 
   .story-card-intro .story-content {
@@ -539,6 +604,368 @@ button {
 
   .story-card-intro .story-poster-year {
     bottom: -2rem;
+  }
+}
+
+@media (max-width: 899px) {
+  .story-card-intro .story-content {
+    padding-top: clamp(2.8rem, 7.2dvh, 4.2rem);
+    padding-bottom: clamp(6.4rem, 14.4dvh, 7.9rem);
+  }
+
+  .story-card-intro .story-moment {
+    gap: clamp(0.48rem, 1.25dvh, 0.74rem);
+  }
+
+  .story-controls-intro {
+    bottom: clamp(1.55rem, 4.2dvh, 2.55rem);
+  }
+
+  .story-card-input {
+    --step-content-pad: clamp(0.46rem, 1.35dvh, 0.82rem);
+    --step-gap: clamp(0.48rem, 1.35dvh, 0.82rem);
+  }
+
+  .story-card-input .story-moment,
+  .story-card-tax .story-moment {
+    align-content: center;
+  }
+
+  .income-form {
+    gap: clamp(0.46rem, 1.35dvh, 0.72rem);
+  }
+
+  .income-input-wrap {
+    border-width: 2px;
+    border-radius: 1.15rem;
+    padding: clamp(0.54rem, 1.75dvh, 0.78rem) 0.72rem;
+    box-shadow: 0.22rem 0.22rem 0 currentColor;
+  }
+
+  .income-input-wrap span,
+  .income-input-wrap input {
+    font-size: clamp(2.55rem, 12.4vw, 4.35rem);
+  }
+
+  .tax-poster-mark {
+    width: clamp(6.2rem, 28vw, 8.2rem);
+    height: clamp(3.2rem, 13.6vw, 4.45rem);
+  }
+
+  .story-card-bracket-walk {
+    --step-content-pad: clamp(0.22rem, 0.72dvh, 0.42rem);
+    --step-gap: clamp(0.28rem, 0.86dvh, 0.52rem);
+  }
+
+  .bracket-walk-card {
+    height: 100%;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    align-content: stretch;
+    gap: clamp(0.3rem, 0.92dvh, 0.54rem);
+  }
+
+  .bracket-walk-list {
+    min-height: 0;
+    overflow-y: auto;
+    align-content: start;
+    gap: clamp(0.24rem, 0.72dvh, 0.38rem);
+    padding-right: 0.08rem;
+  }
+
+  .bracket-walk-row {
+    gap: 0.42rem;
+    padding-bottom: clamp(0.22rem, 0.62dvh, 0.34rem);
+  }
+
+  .bracket-walk-main strong {
+    font-size: clamp(0.76rem, 3vw, 0.98rem);
+  }
+
+  .bracket-walk-rate {
+    font-size: clamp(1rem, 4vw, 1.35rem);
+  }
+
+  .bracket-walk-detail span {
+    font-size: clamp(0.56rem, 2.2vw, 0.68rem);
+  }
+
+  .bracket-walk-amount {
+    font-size: clamp(0.92rem, 3.7vw, 1.3rem);
+  }
+
+  .story-card-allocation {
+    --step-content-pad: clamp(0.28rem, 0.86dvh, 0.52rem);
+    --step-gap: clamp(0.32rem, 0.96dvh, 0.56rem);
+  }
+
+  .story-moment-allocation {
+    height: 100%;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+    align-content: stretch;
+    justify-items: center;
+    gap: var(--step-gap);
+  }
+
+  .story-moment-allocation .story-title {
+    line-height: 0.82;
+    max-width: 11ch;
+  }
+
+  .allocation-hero {
+    gap: 0;
+    max-width: 100%;
+    font-size: clamp(0.8rem, 3vw, 1rem);
+    line-height: 0.95;
+  }
+
+  .allocation-chart {
+    align-self: stretch;
+    min-height: 0;
+    max-height: clamp(9.2rem, 26dvh, 13.2rem);
+    gap: clamp(0.22rem, 0.62dvh, 0.34rem);
+    overflow: hidden;
+  }
+
+  .allocation-chart-svg {
+    height: clamp(3rem, 7.8dvh, 4rem);
+  }
+
+  .allocation-chart-key {
+    gap: clamp(0.18rem, 0.56dvh, 0.3rem) 0.36rem;
+  }
+
+  .allocation-chart-key > span {
+    gap: 0.06rem 0.26rem;
+    font-size: clamp(0.56rem, 2.1vw, 0.68rem);
+    line-height: 0.95;
+  }
+
+  .allocation-chart-key strong {
+    font-size: clamp(0.74rem, 2.7vw, 0.92rem);
+  }
+
+  .story-card-category,
+  .story-card-spotlight {
+    --step-content-pad: clamp(0.18rem, 0.58dvh, 0.36rem);
+    --step-gap: clamp(0.2rem, 0.62dvh, 0.4rem);
+  }
+
+  .story-card-category .story-moment,
+  .story-card-spotlight .story-moment {
+    align-content: stretch;
+  }
+
+  .story-card-category .category-hit,
+  .story-card-spotlight .category-hit {
+    height: 100%;
+    min-height: 0;
+    align-content: center;
+    gap: clamp(0.2rem, 0.66dvh, 0.38rem);
+    overflow: hidden;
+  }
+
+  .category-hit .story-eyebrow {
+    padding: 0.3rem 0.48rem;
+    font-size: 0.56rem;
+  }
+
+  .category-hit .story-kicker {
+    max-width: 100%;
+    line-height: 0.88;
+  }
+
+  .category-hit .story-number {
+    line-height: 0.72;
+  }
+
+  .category-hit .story-category-title {
+    max-width: 18rem;
+    line-height: 0.86;
+  }
+
+  .category-chart,
+  .spotlight-chart {
+    width: min(100%, 19.5rem);
+  }
+
+  .category-chart-svg,
+  .spotlight-chart-svg {
+    height: clamp(3rem, 7.8dvh, 4.15rem);
+  }
+
+  .program-callouts {
+    min-height: 0;
+    max-height: clamp(5.3rem, 16.5dvh, 7.65rem);
+    overflow-y: auto;
+    gap: clamp(0.18rem, 0.52dvh, 0.3rem);
+    padding-right: 0.08rem;
+  }
+
+  .program-callout {
+    gap: 0.12rem;
+    border-width: 2px;
+    border-radius: 0.68rem;
+    padding: clamp(0.24rem, 0.78dvh, 0.36rem) 0.46rem;
+    box-shadow: 0.11rem 0.11rem 0 var(--story-ink);
+  }
+
+  .program-callout-amount {
+    font-size: clamp(0.96rem, 3.75vw, 1.32rem);
+  }
+
+  .program-callout p {
+    font-size: clamp(0.58rem, 2.22vw, 0.7rem);
+    line-height: 1.02;
+  }
+
+  .program-callout > span {
+    font-size: clamp(0.5rem, 1.86vw, 0.58rem);
+  }
+
+  .program-callout-source {
+    padding: 0.18rem 0.3rem;
+    font-size: clamp(0.5rem, 1.88vw, 0.58rem);
+  }
+
+  .story-copy-tight {
+    max-width: 19rem;
+    font-size: clamp(0.7rem, 2.68vw, 0.86rem);
+    line-height: 1.04;
+  }
+
+  .story-pill-soft {
+    padding: 0.34rem 0.54rem;
+    font-size: clamp(0.6rem, 2.28vw, 0.72rem);
+    line-height: 1.06;
+  }
+
+  .story-detail-button {
+    border-width: 2px;
+    padding: 0.42rem 0.64rem;
+    font-size: clamp(0.66rem, 2.55vw, 0.78rem);
+    box-shadow: 0.14rem 0.14rem 0 var(--story-ink);
+  }
+
+  .story-mini-list {
+    max-height: clamp(3.6rem, 10dvh, 4.8rem);
+    overflow-y: auto;
+    border-radius: 0.78rem;
+    padding: 0.34rem 0.48rem;
+  }
+
+  .story-card-drilldown {
+    --step-content-pad: clamp(0.18rem, 0.58dvh, 0.34rem);
+  }
+
+  .drilldown-card {
+    height: 100%;
+    max-height: none;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
+    align-content: stretch;
+    gap: clamp(0.22rem, 0.64dvh, 0.38rem);
+    padding: 0;
+  }
+
+  .drilldown-donut {
+    width: clamp(4.1rem, 16vw, 5.25rem);
+  }
+
+  .drilldown-headline p,
+  .drilldown-headline span {
+    font-size: clamp(0.94rem, 3.65vw, 1.26rem);
+  }
+
+  .drilldown-bars-shell {
+    display: grid;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .drilldown-bars {
+    max-height: 100%;
+    margin-top: 0;
+    gap: clamp(0.26rem, 0.72dvh, 0.4rem);
+    padding-bottom: 0.38rem;
+  }
+
+  .drilldown-row {
+    grid-template-columns: minmax(2.6rem, 28%) auto minmax(0, 1fr);
+    gap: 0.32rem;
+  }
+
+  .drilldown-row strong {
+    font-size: clamp(0.98rem, 3.8vw, 1.35rem);
+  }
+
+  .drilldown-source,
+  .drilldown-hint {
+    max-width: 19.5rem;
+    font-size: clamp(0.52rem, 1.9vw, 0.62rem);
+    line-height: 1.06;
+  }
+
+  .story-card-summary {
+    --step-content-pad: clamp(0.2rem, 0.66dvh, 0.42rem);
+  }
+
+  .story-card-summary .story-moment-summary {
+    height: 100%;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+    align-content: stretch;
+    gap: clamp(0.2rem, 0.62dvh, 0.38rem);
+  }
+
+  .story-card-summary .story-moment-summary > * {
+    justify-self: stretch;
+  }
+
+  .story-moment-summary .story-title {
+    line-height: 0.78;
+  }
+
+  .story-moment-summary .summary-total {
+    line-height: 0.72;
+  }
+
+  .story-moment-summary .summary-chart {
+    width: 100%;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .story-moment-summary .summary-chart-rows {
+    gap: clamp(0.22rem, 0.62dvh, 0.36rem);
+  }
+
+  .story-moment-summary .summary-chart-row {
+    gap: 0.1rem;
+  }
+
+  .story-moment-summary .summary-chart-track {
+    height: clamp(0.46rem, 1.45dvh, 0.64rem);
+  }
+
+  .story-card-coda {
+    --step-content-pad: clamp(0.42rem, 1.18dvh, 0.72rem);
+  }
+
+  .story-moment-coda {
+    gap: clamp(0.36rem, 1.05dvh, 0.62rem);
+  }
+
+  .coda-slice {
+    padding: 0.5rem 0.64rem;
+    font-size: clamp(0.82rem, 3.12vw, 1rem);
+    line-height: 1.04;
+  }
+
+  .story-transparency-links {
+    gap: 0.28rem;
+  }
+
+  .story-transparency-links a {
+    padding: 0.24rem 0.42rem;
+    font-size: clamp(0.54rem, 2.04vw, 0.64rem);
   }
 }
 
@@ -2831,6 +3258,10 @@ button.summary-chart-row {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .fit-text {
+    transition: none;
+  }
+
   *,
   *::before,
   *::after {

@@ -14,13 +14,21 @@ function easeOutCubic(progress: number) {
   return 1 - (1 - progress) ** 3;
 }
 
-export function useCountUp(target: number, durationMs = 700) {
+export function useCountUp(target: number, durationMs = 700, enabled = true) {
   const finalValue = Math.round(target);
   const [displayValue, setDisplayValue] = useState(() =>
     prefersReducedMotion() ? finalValue : 0,
   );
 
   useEffect(() => {
+    if (!enabled) {
+      const timerId = window.setTimeout(
+        () => setDisplayValue(prefersReducedMotion() ? finalValue : 0),
+        0,
+      );
+      return () => window.clearTimeout(timerId);
+    }
+
     if (prefersReducedMotion() || durationMs <= 0 || finalValue === 0) {
       const timerId = window.setTimeout(() => setDisplayValue(finalValue), 0);
       return () => window.clearTimeout(timerId);
@@ -58,7 +66,7 @@ export function useCountUp(target: number, durationMs = 700) {
         window.clearTimeout(timerId);
       }
     };
-  }, [durationMs, finalValue]);
+  }, [durationMs, enabled, finalValue]);
 
   return displayValue;
 }
