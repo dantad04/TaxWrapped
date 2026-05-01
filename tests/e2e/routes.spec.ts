@@ -11,6 +11,29 @@ const INTRO_VIEWPORTS = [
   { width: 390, height: 844 },
   { width: 430, height: 932 },
 ] as const;
+const CATEGORY_CARD_EXPECTATIONS = [
+  {
+    heading: "Social security & welfare",
+    calloutText: "Funds assistance for families with children.",
+  },
+  {
+    heading: "Health",
+    calloutText: "Funds public hospital assistance to states and territories.",
+  },
+  {
+    heading: "Education",
+    calloutText: "Funds school education expenses across school sectors.",
+  },
+  {
+    heading: "Defence",
+    calloutText: "Funds Defence workforce costs.",
+  },
+  {
+    heading: "Energy & resources",
+    calloutText:
+      "Funds the Fuel and energy sub-function reported in BP1 Appendix A.",
+  },
+] as const;
 const DESKTOP_CONTAINMENT_VIEWPORTS = [
   { width: 1280, height: 800 },
   { width: 1366, height: 768 },
@@ -165,7 +188,13 @@ test.describe("mobile story flow", () => {
     await expect(page.getByRole("heading", { name: "Defence" })).toBeVisible();
     await clickStoryButton(page, "Open breakdown");
     await expect(page.getByText("to Defence.")).toBeVisible();
-    await expect(page.getByText("Workforce", { exact: true })).toBeVisible();
+    await expect(
+      page
+        .getByTestId("drilldown-bars")
+        .locator(".drilldown-row")
+        .getByText("Workforce", { exact: true })
+        .first(),
+    ).toBeVisible();
     await expect(
       page.getByText("Defence breakdown: Defence Portfolio Budget Statements 2025-26"),
     ).toBeVisible();
@@ -259,7 +288,7 @@ test.describe("mobile story flow", () => {
     expect(storageLengths).toEqual({ local: 0, session: 0 });
   });
 
-  test("renders sourced program callouts on category cards", async ({
+  test("renders sourced program callouts inside category breakdowns", async ({
     page,
   }) => {
     await enterTaxableIncome(page);
@@ -280,24 +309,38 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("heading", { name: "Social security & welfare" }),
     ).toBeVisible();
-    await expect(page.getByTestId("program-callouts")).toContainText(
+    await expect(
+      page.locator(".story-card-category").getByTestId("program-callouts"),
+    ).not.toBeVisible();
+    await clickStoryButton(page, "Open breakdown");
+    await expect(page.getByTestId("drilldown-programs")).toContainText(
       "Assistance to families with children",
     );
+    await clickStoryButton(page, "Done");
 
     await clickStoryButton(page, "Next");
     await expect(page.getByRole("heading", { name: "Health" })).toBeVisible();
-    await expect(page.getByTestId("program-callouts")).toContainText(
+    await expect(
+      page.locator(".story-card-category").getByTestId("program-callouts"),
+    ).not.toBeVisible();
+    await clickStoryButton(page, "Open breakdown");
+    await expect(page.getByTestId("drilldown-programs")).toContainText(
       "Assistance to the states for public hospitals",
     );
+    await clickStoryButton(page, "Done");
 
     await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Education" }),
     ).toBeVisible();
-    await expect(page.getByTestId("program-callouts")).toContainText("Schools");
+    await expect(
+      page.locator(".story-card-category").getByTestId("program-callouts"),
+    ).not.toBeVisible();
+    await clickStoryButton(page, "Open breakdown");
+    await expect(page.getByTestId("drilldown-programs")).toContainText("Schools");
 
     await page
-      .getByTestId("program-callouts")
+      .getByTestId("drilldown-programs")
       .getByRole("link", { name: "Source" })
       .first()
       .click();
@@ -818,6 +861,170 @@ async function walkFlowAndAssertHeroFit(page: Page, income: number) {
     `coda income ${income}`,
   );
 }
+
+async function advanceToFirstCategory(page: Page) {
+  await startStoryWithIncome(page, 90000);
+  await expect(page.getByRole("heading", { name: "Your tax estimate" })).toBeVisible();
+  await advanceAndFit(page, "Bracket by bracket.", "category preflight bracket");
+  await advanceAndFit(
+    page,
+    "Mapped across the Budget",
+    "category preflight allocation",
+  );
+}
+
+async function expectCategoryHeroAmountLargest(page: Page, context: string) {
+  await waitForHeroFitCycle(page);
+
+  const sizes = await page.locator(".story-card-category").evaluate((card) => {
+    const getFontSize = (selector: string) => {
+      const element = card.querySelector(selector);
+
+      if (!(element instanceof HTMLElement)) {
+        return 0;
+      }
+
+      return Number.parseFloat(window.getComputedStyle(element).fontSize);
+    };
+
+    return {
+      category: getFontSize('[data-hero-fit="category-title"]'),
+      headline: getFontSize('[data-hero-fit="category-kicker"]'),
+      hero: getFontSize('[data-hero-fit="category-amount"]'),
+    };
+  });
+
+  expect(sizes.hero, `${context} hero vs headline`).toBeGreaterThan(
+    sizes.headline,
+  );
+  expect(sizes.hero, `${context} hero vs category`).toBeGreaterThan(
+    sizes.category,
+  );
+}
+
+test.describe("mobile category card simplification", () => {
+  test.setTimeout(90_000);
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("moves program callouts off each main card and into breakdowns", async ({
+    page,
+  }) => {
+    await advanceToFirstCategory(page);
+
+    for (const category of CATEGORY_CARD_EXPECTATIONS) {
+      await advanceAndFit(page, category.heading, `category ${category.heading}`);
+
+      const mainCard = page.locator(".story-card-category");
+
+      await expect(mainCard.getByText(category.calloutText)).not.toBeVisible();
+      await expectCategoryHeroAmountLargest(page, category.heading);
+
+      await clickStoryButton(page, "Open breakdown");
+      await expect(page.locator(".story-card")).toHaveAttribute(
+        "data-step",
+        "drilldown",
+      );
+
+      const programs = page.getByTestId("drilldown-programs");
+
+      await programs.scrollIntoViewIfNeeded();
+      await expect(programs.getByText(category.calloutText)).toBeVisible();
+      await expect(
+        programs.getByRole("link", { name: "Source" }).first(),
+      ).toBeVisible();
+
+      await clickStoryButton(page, "Done");
+      await expect(
+        page.getByRole("heading", { name: category.heading }),
+      ).toBeVisible();
+    }
+  });
+
+  test("opens the shared sources sheet on every category and closes without state change", async ({
+    page,
+  }) => {
+    await advanceToFirstCategory(page);
+
+    for (const category of CATEGORY_CARD_EXPECTATIONS) {
+      await advanceAndFit(page, category.heading, `sources ${category.heading}`);
+
+      const amount = (await page
+        .locator('[data-hero-fit="category-amount"]')
+        .getAttribute("aria-label"))?.trim();
+      const stepCounter = (await page
+        .locator(".story-topbar span")
+        .last()
+        .textContent())?.trim();
+      const sourcesButton = page.getByRole("button", {
+        name: "Sources",
+        exact: true,
+      });
+
+      await expect(sourcesButton).toBeVisible();
+      await sourcesButton.click();
+
+      const dialog = page.getByRole("dialog", {
+        name: `Sources for ${category.heading}`,
+      });
+
+      await expect(dialog).toBeVisible();
+      await expect(dialog.locator(".sources-sheet-entry")).not.toHaveCount(0);
+      await expect(dialog.getByText(/Statement 5/).first()).toBeVisible();
+      await expect(dialog.getByRole("link", { name: "Full registry" }).first())
+        .toHaveAttribute("href", /\/sources/);
+
+      await page.getByRole("button", { name: "Close sources" }).click();
+      await expect(dialog).toHaveCount(0);
+      await expect(
+        page.getByRole("heading", { name: category.heading }),
+      ).toBeVisible();
+      await expect(page.locator(".story-card")).toHaveAttribute(
+        "data-step",
+        "category",
+      );
+      await expect(page.locator(".story-topbar span").last()).toHaveText(
+        stepCounter ?? "",
+      );
+      await expect(
+        page.locator('[data-hero-fit="category-amount"]'),
+      ).toHaveAttribute("aria-label", amount ?? "");
+    }
+  });
+
+  test("captures the category breakdown and sources sheet surfaces", async ({
+    page,
+  }) => {
+    await advanceToFirstCategory(page);
+
+    for (const category of CATEGORY_CARD_EXPECTATIONS) {
+      await advanceAndFit(page, category.heading, `capture ${category.heading}`);
+
+      if (category.heading === "Energy & resources") {
+        break;
+      }
+    }
+
+    await fs.mkdir("test-results", { recursive: true });
+    await clickStoryButton(page, "Open breakdown");
+    await expect(page.getByTestId("drilldown-programs")).toBeVisible();
+    await expect(page.getByTestId("drilldown-spotlights")).toBeVisible();
+    await page.screenshot({
+      path: "test-results/category-breakdown-programs-spotlights.png",
+    });
+
+    await clickStoryButton(page, "Done");
+    await expect(
+      page.getByRole("heading", { name: "Energy & resources" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Sources", exact: true }).click();
+    await expect(
+      page.getByRole("dialog", { name: "Sources for Energy & resources" }),
+    ).toBeVisible();
+    await page.screenshot({
+      path: "test-results/category-sources-sheet.png",
+    });
+  });
+});
 
 async function advanceAndAssertMobileViewportFit(
   page: Page,

@@ -481,6 +481,12 @@ button {
   gap: clamp(1rem, 3svh, 1.55rem);
 }
 
+.story-sources-button,
+.drilldown-detail-section,
+.sources-sheet-backdrop {
+  display: none;
+}
+
 @media (max-width: 899px) {
   .story-shell {
     padding: clamp(0.36rem, 1.28dvh, 0.64rem);
@@ -764,6 +770,70 @@ button {
     overflow: hidden;
   }
 
+  .story-card-category .category-hit {
+    gap: clamp(0.28rem, 0.92dvh, 0.54rem);
+  }
+
+  .story-card-category .category-hit > .story-eyebrow,
+  .story-card-category .program-callouts-main,
+  .story-card-category .story-mini-list-main {
+    display: none;
+  }
+
+  .story-card-category .category-chart {
+    order: 1;
+    width: min(100%, 15.5rem);
+    margin-bottom: -0.18rem;
+  }
+
+  .story-card-category .category-chart-svg {
+    height: clamp(2.15rem, 5.4dvh, 2.9rem);
+  }
+
+  .story-card-category .story-kicker {
+    order: 2;
+  }
+
+  .story-card-category .story-number {
+    order: 3;
+  }
+
+  .story-card-category .story-category-title {
+    order: 4;
+  }
+
+  .story-card-category .story-function-line {
+    order: 5;
+  }
+
+  .story-card-category .story-copy-tight {
+    order: 6;
+  }
+
+  .story-card-category .story-detail-button {
+    order: 7;
+  }
+
+  .story-card-category .story-sources-button {
+    order: 8;
+  }
+
+  .story-card-category .story-slab {
+    top: clamp(4.2rem, 10.6dvh, 5.8rem);
+    right: -5.6rem;
+    opacity: 0.78;
+  }
+
+  .story-card-category .story-pattern {
+    bottom: 4.9rem;
+    opacity: 0.44;
+  }
+
+  .story-card-category .story-watermark {
+    top: 48%;
+    opacity: 0.08;
+  }
+
   .category-hit .story-eyebrow {
     padding: 0.3rem 0.48rem;
     font-size: 0.56rem;
@@ -781,6 +851,20 @@ button {
   .category-hit .story-category-title {
     max-width: 18rem;
     line-height: 0.86;
+  }
+
+  .story-card-category .category-hit .story-kicker {
+    max-width: 17.75rem;
+    line-height: 0.9;
+  }
+
+  .story-card-category .category-hit .story-number {
+    line-height: 0.7;
+  }
+
+  .story-card-category .category-hit .story-category-title {
+    max-width: 16.5rem;
+    line-height: 0.9;
   }
 
   .category-chart,
@@ -839,11 +923,43 @@ button {
     line-height: 1.06;
   }
 
+  .story-card-category .story-function-line {
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+    font-size: clamp(0.52rem, 1.9vw, 0.62rem);
+    line-height: 1;
+    opacity: 0.66;
+  }
+
   .story-detail-button {
     border-width: 2px;
     padding: 0.42rem 0.64rem;
     font-size: clamp(0.66rem, 2.55vw, 0.78rem);
     box-shadow: 0.14rem 0.14rem 0 var(--story-ink);
+  }
+
+  .story-card-category .story-detail-button {
+    min-width: min(100%, 13.2rem);
+    padding: 0.54rem 0.74rem;
+    font-size: clamp(0.72rem, 2.75vw, 0.84rem);
+  }
+
+  .story-sources-button {
+    display: inline-flex;
+    min-width: min(100%, 10.8rem);
+    justify-content: center;
+    border: 2px solid var(--story-ink);
+    border-radius: 999px;
+    padding: 0.42rem 0.68rem;
+    color: var(--story-ink);
+    background: rgba(251, 250, 245, 0.5);
+    font-size: clamp(0.62rem, 2.35vw, 0.72rem);
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
   .story-mini-list {
@@ -886,6 +1002,65 @@ button {
     margin-top: 0;
     gap: clamp(0.26rem, 0.72dvh, 0.4rem);
     padding-bottom: 0.38rem;
+  }
+
+  .drilldown-detail-section {
+    display: grid;
+    gap: clamp(0.28rem, 0.82dvh, 0.46rem);
+    border-top: 2px solid color-mix(in srgb, var(--story-ink) 22%, transparent);
+    margin-top: clamp(0.16rem, 0.48dvh, 0.28rem);
+    padding-top: clamp(0.42rem, 1.2dvh, 0.62rem);
+  }
+
+  .drilldown-detail-section h3 {
+    color: color-mix(in srgb, var(--story-ink) 72%, transparent);
+    font-size: clamp(0.58rem, 2.15vw, 0.68rem);
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .program-callouts-breakdown {
+    width: 100%;
+  }
+
+  .drilldown-spotlight-list {
+    display: grid;
+    gap: clamp(0.24rem, 0.72dvh, 0.38rem);
+  }
+
+  .drilldown-spotlight-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.48rem;
+    align-items: center;
+    border: 2px solid var(--story-ink);
+    border-radius: 0.78rem;
+    padding: clamp(0.3rem, 0.86dvh, 0.42rem) 0.5rem;
+    background: rgba(251, 250, 245, 0.72);
+    box-shadow: 0.11rem 0.11rem 0 var(--story-ink);
+  }
+
+  .drilldown-spotlight-item div {
+    display: grid;
+    min-width: 0;
+    gap: 0.12rem;
+  }
+
+  .drilldown-spotlight-item strong {
+    color: var(--story-accent);
+    font-size: clamp(0.92rem, 3.5vw, 1.22rem);
+    line-height: 0.9;
+    font-weight: 1000;
+    white-space: nowrap;
+  }
+
+  .drilldown-spotlight-item span {
+    color: color-mix(in srgb, var(--story-ink) 78%, transparent);
+    font-size: clamp(0.62rem, 2.35vw, 0.72rem);
+    line-height: 1.04;
+    font-weight: 820;
   }
 
   .drilldown-row {
@@ -966,6 +1141,116 @@ button {
   .story-transparency-links a {
     padding: 0.24rem 0.42rem;
     font-size: clamp(0.54rem, 2.04vw, 0.64rem);
+  }
+
+  .sources-sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    padding: clamp(0.62rem, 2.1dvh, 0.95rem);
+    background: rgba(8, 8, 8, 0.48);
+  }
+
+  .sources-sheet {
+    display: grid;
+    width: 100%;
+    max-height: min(72dvh, 34rem);
+    gap: clamp(0.48rem, 1.35dvh, 0.72rem);
+    overflow-y: auto;
+    border: 2px solid var(--story-ink);
+    border-radius: 1.25rem;
+    padding: clamp(0.72rem, 2.2dvh, 1rem);
+    background: var(--story-paper);
+    color: var(--story-ink);
+    box-shadow: 0.24rem 0.24rem 0 var(--story-ink);
+  }
+
+  .sources-sheet-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.72rem;
+  }
+
+  .sources-sheet-topline p {
+    color: color-mix(in srgb, var(--story-ink) 66%, transparent);
+    font-size: clamp(0.58rem, 2.15vw, 0.68rem);
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sources-sheet-close {
+    display: inline-grid;
+    width: 2.1rem;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 2px solid var(--story-ink);
+    border-radius: 50%;
+    color: var(--story-ink);
+    background: color-mix(in srgb, var(--story-accent) 12%, var(--story-paper));
+    font-size: 1rem;
+    line-height: 1;
+    font-weight: 950;
+  }
+
+  .sources-sheet-close:focus-visible {
+    outline: 4px solid var(--story-green);
+    outline-offset: 3px;
+  }
+
+  .sources-sheet h2 {
+    max-width: 18rem;
+    color: var(--story-accent);
+    font-size: clamp(1.22rem, 5vw, 1.72rem);
+    line-height: 0.92;
+    font-weight: 1000;
+    text-wrap: balance;
+  }
+
+  .sources-sheet-list {
+    display: grid;
+    gap: clamp(0.38rem, 1.05dvh, 0.58rem);
+  }
+
+  .sources-sheet-entry {
+    display: grid;
+    gap: 0.18rem;
+    border-top: 2px solid color-mix(in srgb, var(--story-ink) 18%, transparent);
+    padding-top: clamp(0.42rem, 1.15dvh, 0.58rem);
+  }
+
+  .sources-sheet-entry p,
+  .sources-sheet-entry span {
+    color: color-mix(in srgb, var(--story-ink) 62%, transparent);
+    font-size: clamp(0.58rem, 2.1vw, 0.68rem);
+    line-height: 1.12;
+    font-weight: 820;
+  }
+
+  .sources-sheet-entry strong {
+    font-size: clamp(0.72rem, 2.75vw, 0.88rem);
+    line-height: 1.08;
+    font-weight: 900;
+  }
+
+  .sources-sheet-entry a {
+    width: fit-content;
+    border: 1.5px solid currentColor;
+    border-radius: 999px;
+    padding: 0.24rem 0.4rem;
+    color: inherit;
+    background: color-mix(in srgb, var(--story-accent) 10%, transparent);
+    font-size: clamp(0.56rem, 2.08vw, 0.66rem);
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    text-transform: uppercase;
   }
 }
 
@@ -1476,6 +1761,7 @@ button {
 }
 
 .story-detail-button:focus-visible,
+.story-sources-button:focus-visible,
 .program-callout-source:focus-visible,
 .drilldown-row-button:focus-visible,
 .summary-chart-row:focus-visible {
@@ -1684,7 +1970,7 @@ button {
 
 @media (max-width: 460px) {
   .drilldown-bars-shell {
-    max-height: 6.15rem;
+    max-height: none;
   }
 
   .drilldown-bars {

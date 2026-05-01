@@ -40,10 +40,12 @@ import {
 } from "@/lib/budget/drilldown-data";
 import type {
   BudgetDrilldownAllocationRow,
+  BudgetDrilldownNode,
   BudgetProgramCalloutAllocationRow,
   BudgetDrilldownView,
 } from "@/lib/budget/drilldown-model";
 import type { ChartTone } from "@/lib/charts/budget-chart-data";
+import { sourceRegistry, type SourceId } from "@/data/sources";
 import { useCountUp } from "@/hooks/use-count-up";
 import { useFitText } from "@/hooks/use-fit-text";
 import { setSharePreviewEstimatedTax } from "@/lib/share/share-preview-state";
@@ -571,15 +573,20 @@ function TaxBracketWalkCard({
 
 function ProgramCallouts({
   callouts,
+  className,
 }: {
   callouts: readonly BudgetProgramCalloutAllocationRow[];
+  className?: string;
 }) {
   if (callouts.length === 0) {
     return null;
   }
 
   return (
-    <div className="program-callouts" data-testid="program-callouts">
+    <div
+      className={`program-callouts ${className ?? ""}`.trim()}
+      data-testid="program-callouts"
+    >
       {callouts.slice(0, 2).map((callout) => (
         <article key={callout.id} className="program-callout">
           <div className="program-callout-topline">
@@ -798,10 +805,72 @@ function getSourcePrefix(view: BudgetDrilldownView) {
     : "Source";
 }
 
+function DrilldownPrograms({
+  callouts,
+}: {
+  callouts: readonly BudgetProgramCalloutAllocationRow[];
+}) {
+  if (callouts.length === 0) {
+    return null;
+  }
+
+  return (
+    <section
+      className="drilldown-detail-section drilldown-program-section"
+      data-testid="drilldown-programs"
+    >
+      <h3>Programs</h3>
+      <ProgramCallouts
+        callouts={callouts}
+        className="program-callouts-breakdown"
+      />
+    </section>
+  );
+}
+
+function DrilldownSpotlights({
+  spotlights,
+}: {
+  spotlights: readonly SpotlightAllocation[];
+}) {
+  if (spotlights.length === 0) {
+    return null;
+  }
+
+  return (
+    <section
+      className="drilldown-detail-section drilldown-spotlight-section"
+      data-testid="drilldown-spotlights"
+    >
+      <h3>Spotlights</h3>
+      <div className="drilldown-spotlight-list">
+        {spotlights.slice(0, 3).map((spotlight) => (
+          <article key={spotlight.slug} className="drilldown-spotlight-item">
+            <div>
+              <strong>{formatCurrency(spotlight.amount)}</strong>
+              <span>{spotlight.label}</span>
+            </div>
+            <Link
+              className="program-callout-source"
+              href={`/sources#${spotlight.sourceId}`}
+            >
+              Source
+            </Link>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function BudgetDrilldownCard({
+  programCallouts,
+  spotlights,
   view,
   onSelectChild,
 }: {
+  programCallouts: readonly BudgetProgramCalloutAllocationRow[];
+  spotlights: readonly SpotlightAllocation[];
   view: BudgetDrilldownView;
   onSelectChild: (id: string) => void;
 }) {
@@ -909,6 +978,8 @@ function BudgetDrilldownCard({
               </div>
             );
           })}
+          <DrilldownPrograms callouts={programCallouts} />
+          <DrilldownSpotlights spotlights={spotlights} />
         </div>
         <span
           aria-hidden="true"
@@ -935,6 +1006,121 @@ function BudgetDrilldownCard({
           : "No deeper sourced breakdown is available for these lines."}
       </p>
     </section>
+  );
+}
+
+interface CategorySourceEntry {
+  id: SourceId;
+  publisher: string;
+  sourceLocator: string;
+  title: string;
+}
+
+function addSourceId(sourceIds: Set<SourceId>, sourceId: string) {
+  if (sourceId in sourceRegistry) {
+    sourceIds.add(sourceId as SourceId);
+  }
+}
+
+function collectNodeSourceIds(
+  sourceIds: Set<SourceId>,
+  node: BudgetDrilldownNode,
+) {
+  addSourceId(sourceIds, node.sourceId);
+
+  for (const callout of node.callouts ?? []) {
+    addSourceId(sourceIds, callout.sourceId);
+  }
+
+  for (const child of node.children ?? []) {
+    collectNodeSourceIds(sourceIds, child);
+  }
+}
+
+function getCategorySourceEntries(
+  allocation: BudgetFunctionAllocation,
+  category: BudgetDrilldownNode | null,
+): readonly CategorySourceEntry[] {
+  const sourceIds = new Set<SourceId>();
+
+  addSourceId(sourceIds, allocation.sourceId);
+
+  if (category) {
+    collectNodeSourceIds(sourceIds, category);
+  }
+
+  return Array.from(sourceIds).map((id) => {
+    const source = sourceRegistry[id];
+
+    return {
+      id,
+      publisher: source.publisher,
+      sourceLocator: source.sourceLocator,
+      title: source.title,
+    };
+  });
+}
+
+function SourcesSheet({
+  categoryTitle,
+  onClose,
+  sources,
+}: {
+  categoryTitle: string;
+  onClose: () => void;
+  sources: readonly CategorySourceEntry[];
+}) {
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="sources-sheet-backdrop"
+      data-testid="sources-sheet-backdrop"
+      onClick={onClose}
+    >
+      <section
+        aria-labelledby="sources-sheet-title"
+        aria-modal="true"
+        className="sources-sheet"
+        role="dialog"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="sources-sheet-topline">
+          <p>Sources</p>
+          <button
+            aria-label="Close sources"
+            className="sources-sheet-close"
+            type="button"
+            onClick={onClose}
+          >
+            X
+          </button>
+        </div>
+        <h2 id="sources-sheet-title">Sources for {categoryTitle}</h2>
+        <div className="sources-sheet-list">
+          {sources.map((source) => (
+            <article key={source.id} className="sources-sheet-entry">
+              <p>{source.publisher}</p>
+              <strong>{source.title}</strong>
+              <span>{source.sourceLocator}</span>
+              <Link href={`/sources#${source.id}`}>Full registry</Link>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -971,6 +1157,7 @@ interface StoryFrameProps {
   onBack: () => void;
   onNext: () => void;
   onRestart: () => void;
+  overlay?: React.ReactNode;
 }
 
 function StoryFrame({
@@ -986,6 +1173,7 @@ function StoryFrame({
   onBack,
   onNext,
   onRestart,
+  overlay,
 }: StoryFrameProps) {
   const colour = storyPalette[tone];
   const surfaceClasses = storySurfaces[surface];
@@ -1090,6 +1278,7 @@ function StoryFrame({
               </button>
             </div>
           </nav>
+          {overlay}
         </section>
       </div>
     </main>
@@ -1100,6 +1289,7 @@ interface FunctionStory {
   meta: (typeof FUNCTION_STORY_META)[number];
   allocation: BudgetFunctionAllocation;
   callouts: readonly BudgetProgramCalloutAllocationRow[];
+  sources: readonly CategorySourceEntry[];
 }
 
 interface SpotlightStory {
@@ -1125,6 +1315,7 @@ function buildFunctionStories(
                   category,
                 )
               : [],
+            sources: getCategorySourceEntries(allocation, category),
           },
         ]
       : [];
@@ -1145,6 +1336,10 @@ export function BudgetWrappedFlow() {
   const [stepIndex, setStepIndex] = useState(0);
   const [incomeInput, setIncomeInput] = useState("");
   const [activeDrilldownPath, setActiveDrilldownPath] = useState<string[]>([]);
+  const [activeSourcesSlug, setActiveSourcesSlug] =
+    useState<BudgetFunctionSlug | null>(null);
+  const sourcesSheetOpenRef = useRef(false);
+  const sourcesHistoryEntryRef = useRef(false);
   const introTitleMaxPx = useMobileFitMax(78, 58);
   const taxableIncome = parseIncome(incomeInput);
   const hasIncome = taxableIncome !== null;
@@ -1272,12 +1467,44 @@ export function BudgetWrappedFlow() {
   const activeDrilldownTone = activeDrilldownRoot
     ? getFunctionTone(activeDrilldownRoot)
     : currentStep.tone;
+  const activeDrilldownCategoryStory =
+    activeDrilldownRoot && activeDrilldownView?.path.length === 1
+      ? categoryStories.find((story) => story.meta.slug === activeDrilldownRoot)
+      : undefined;
+  const activeDrilldownSpotlights =
+    activeDrilldownRoot && activeDrilldownView?.path.length === 1
+      ? spotlightSummary.allocations.filter(
+          (spotlight) => spotlight.parentFunctionSlug === activeDrilldownRoot,
+        )
+      : [];
+  const activeSourcesStory = activeSourcesSlug
+    ? categoryStories.find((story) => story.meta.slug === activeSourcesSlug)
+    : undefined;
 
   useEffect(() => {
     document.documentElement.dataset.storyHydrated = "true";
 
     return () => {
       delete document.documentElement.dataset.storyHydrated;
+    };
+  }, []);
+
+  useEffect(() => {
+    sourcesSheetOpenRef.current = activeSourcesSlug !== null;
+  }, [activeSourcesSlug]);
+
+  useEffect(() => {
+    function handlePopState() {
+      if (sourcesSheetOpenRef.current) {
+        sourcesHistoryEntryRef.current = false;
+        setActiveSourcesSlug(null);
+      }
+    }
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
     };
   }, []);
 
@@ -1316,6 +1543,7 @@ export function BudgetWrappedFlow() {
     setStepIndex(0);
     setIncomeInput("");
     setActiveDrilldownPath([]);
+    setActiveSourcesSlug(null);
   }
 
   function openDrilldown(slug: BudgetFunctionSlug) {
@@ -1327,6 +1555,24 @@ export function BudgetWrappedFlow() {
   function openNestedDrilldown(id: string) {
     setActiveDrilldownPath((current) => [...current, id]);
   }
+
+  function openSourcesSheet(slug: BudgetFunctionSlug) {
+    if (!sourcesHistoryEntryRef.current) {
+      window.history.pushState(
+        { budgetWrappedSourcesSheet: true },
+        "",
+        window.location.href,
+      );
+      sourcesHistoryEntryRef.current = true;
+    }
+
+    setActiveSourcesSlug(slug);
+  }
+
+  const closeSourcesSheet = useCallback(() => {
+    sourcesHistoryEntryRef.current = false;
+    setActiveSourcesSlug(null);
+  }, []);
 
   return (
     <StoryFrame
@@ -1343,9 +1589,20 @@ export function BudgetWrappedFlow() {
       onBack={goBack}
       onNext={goNext}
       onRestart={restart}
+      overlay={
+        activeSourcesStory ? (
+          <SourcesSheet
+            categoryTitle={activeSourcesStory.meta.title}
+            onClose={closeSourcesSheet}
+            sources={activeSourcesStory.sources}
+          />
+        ) : null
+      }
     >
       {activeDrilldownView && (
         <BudgetDrilldownCard
+          programCallouts={activeDrilldownCategoryStory?.callouts ?? []}
+          spotlights={activeDrilldownSpotlights}
           view={activeDrilldownView}
           onSelectChild={openNestedDrilldown}
         />
@@ -1531,17 +1788,20 @@ export function BudgetWrappedFlow() {
                 id: "category-amount",
                 minPx: 52,
                 maxPx: 112,
-                mobileMaxPx: 74,
+                mobileMaxPx: 90,
               }}
             />
-            <ProgramCallouts callouts={currentCategoryStory.callouts} />
+            <ProgramCallouts
+              callouts={currentCategoryStory.callouts}
+              className="program-callouts-main"
+            />
             <FitText
               as="h2"
               className="story-category-title"
               deps={[currentCategoryStory.meta.title]}
               fitId="category-title"
               maxPx={48}
-              mobileMaxPx={36}
+              mobileMaxPx={30}
               minPx={26}
             >
               {currentCategoryStory.meta.title}
@@ -1549,7 +1809,7 @@ export function BudgetWrappedFlow() {
             <p className="story-copy story-copy-tight">
               {currentCategoryStory.meta.detail}
             </p>
-            <p className="story-pill story-pill-soft">
+            <p className="story-pill story-pill-soft story-function-line">
               Additive function •{" "}
               {formatPercent(
                 currentCategoryStory.allocation.shareOfAdditiveBudget,
@@ -1563,12 +1823,21 @@ export function BudgetWrappedFlow() {
             >
               Open breakdown
             </button>
+            <button
+              type="button"
+              className="story-sources-button"
+              onClick={() =>
+                openSourcesSheet(currentCategoryStory.allocation.slug)
+              }
+            >
+              Sources
+            </button>
             {spotlightSummary.allocations.some(
               (spotlight) =>
                 spotlight.parentFunctionSlug ===
                 currentCategoryStory.allocation.slug,
             ) && (
-              <div className="story-mini-list">
+              <div className="story-mini-list story-mini-list-main">
                 <span>Spotlights, not added</span>
                 {spotlightSummary.allocations
                   .filter(
