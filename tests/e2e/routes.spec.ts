@@ -7,6 +7,7 @@ const HERO_FIT_INCOMES = [0, 5, 18200, 90000, 250000, 1000000] as const;
 const HERO_FIT_VIEWPORT_WIDTHS = [360, 390, 430] as const;
 const DESKTOP_CONTAINMENT_VIEWPORTS = [
   { width: 1280, height: 800 },
+  { width: 1366, height: 768 },
   { width: 1440, height: 900 },
 ] as const;
 
@@ -19,7 +20,10 @@ const routes = [
 ];
 
 async function clickStoryButton(page: Page, name: string) {
-  await page.getByRole("button", { name, exact: true }).click({ force: true });
+  const button = page.getByRole("button", { name, exact: true });
+
+  await expect(button).toBeEnabled();
+  await button.click({ force: true });
 }
 
 test.describe("routes", () => {
@@ -630,6 +634,45 @@ async function expectDesktopContentContained(page: Page, context: string) {
   expect(pageScrolls, `${context} page scroll`).toBe(false);
 }
 
+async function expectSummaryBarsVisuallyWeighted(page: Page) {
+  const bars = await page.locator(".summary-chart-row").evaluateAll((rows) =>
+    rows.map((row) => {
+      const fill = row.querySelector(".summary-chart-fill") as HTMLElement | null;
+      const track = row.querySelector(".summary-chart-track") as HTMLElement | null;
+      const label =
+        row.querySelector(".summary-chart-row-top span")?.textContent?.trim() ??
+        "";
+
+      if (!fill || !track) {
+        return { label, backgroundColor: "", fillWidth: 0, trackWidth: 0 };
+      }
+
+      return {
+        label,
+        backgroundColor: window.getComputedStyle(fill).backgroundColor,
+        fillWidth: fill.getBoundingClientRect().width,
+        trackWidth: track.getBoundingClientRect().width,
+      };
+    }),
+  );
+
+  expect(bars.length).toBeGreaterThan(2);
+
+  for (const bar of bars) {
+    expect(bar.fillWidth, `${bar.label} fill width`).toBeGreaterThan(0);
+    expect(bar.fillWidth, `${bar.label} track width`).toBeLessThanOrEqual(
+      bar.trackWidth + 1,
+    );
+    expect(bar.backgroundColor, `${bar.label} fill colour`).not.toBe(
+      "rgba(0, 0, 0, 0)",
+    );
+  }
+
+  expect(bars[0].fillWidth, "largest summary row fill").toBeGreaterThan(
+    bars[1].fillWidth,
+  );
+}
+
 async function advanceDesktopAndAssert(
   page: Page,
   heading: string | RegExp,
@@ -718,6 +761,7 @@ async function walkDesktopFlowAndAssertContainment(page: Page) {
     "Your illustrative receipt",
     "desktop final summary",
   );
+  await expectSummaryBarsVisuallyWeighted(page);
   await advanceDesktopAndAssert(
     page,
     "Australia's 2025-26 Commonwealth bill.",
@@ -743,6 +787,8 @@ test.describe("drilldown row ordering", () => {
 });
 
 test.describe("laptop story stage", () => {
+  test.setTimeout(60_000);
+
   for (const viewport of DESKTOP_CONTAINMENT_VIEWPORTS) {
     test.describe(`${viewport.width}x${viewport.height}`, () => {
       test.use({ viewport });

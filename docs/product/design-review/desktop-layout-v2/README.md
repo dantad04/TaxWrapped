@@ -56,6 +56,8 @@ drilldown bars.
 - The drilldown subcategory list fits in the right column without the mobile
   scroll affordance.
 - The final summary receipt spans the desktop composition below the hero figure.
+- Final summary bars now render visible fills proportional to each row's
+  computed weight.
 
 ## Remaining Risk
 

@@ -1441,6 +1441,7 @@ button.summary-chart-row {
 .summary-chart-fill {
   display: block;
   height: 100%;
+  background: var(--chart-colour);
   transform-origin: left center;
   animation: summary-bar-grow 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -2564,7 +2565,7 @@ button.summary-chart-row {
     grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
     align-content: stretch;
     align-items: start;
-    gap: clamp(0.45rem, 0.9svh, 0.7rem);
+    gap: clamp(0.32rem, 0.75svh, 0.62rem);
   }
 
   .story-card-summary .story-moment-summary > * {
@@ -2580,13 +2581,51 @@ button.summary-chart-row {
 
   .story-moment-summary .story-title {
     max-width: none;
+    line-height: 0.78;
+  }
+
+  .story-moment-summary .summary-total {
+    margin-top: -0.24rem;
   }
 
   .story-moment-summary .summary-chart {
+    display: grid;
+    align-self: stretch;
     width: 100%;
     max-width: none;
     min-height: 0;
     overflow-y: auto;
+  }
+
+  .story-moment-summary .summary-chart-rows {
+    height: 100%;
+    align-content: stretch;
+    grid-auto-rows: minmax(2.05rem, 1fr);
+    gap: clamp(0.42rem, 1svh, 0.72rem);
+  }
+
+  .story-moment-summary .summary-chart-row {
+    grid-template-rows: auto minmax(0.72rem, 1fr);
+    align-content: stretch;
+    gap: clamp(0.16rem, 0.3svh, 0.24rem);
+  }
+
+  .story-moment-summary .summary-chart-row-top span {
+    font-size: clamp(0.78rem, 1.05vw, 0.98rem);
+  }
+
+  .story-moment-summary .summary-chart-row-top strong {
+    font-size: clamp(1rem, 1.35vw, 1.22rem);
+  }
+
+  .story-moment-summary .summary-chart-track {
+    height: 100%;
+    min-height: clamp(0.76rem, 1.25svh, 1.05rem);
+    background: rgba(251, 250, 245, 0.14);
+  }
+
+  .story-moment-summary .summary-chart-fill {
+    box-shadow: inset 0 -0.08rem 0 rgba(0, 0, 0, 0.24);
   }
 
   .story-moment-summary .story-caveat {
@@ -2690,8 +2729,14 @@ button.summary-chart-row {
   }
 
   .story-controls-intro .story-controls-actions {
-    width: min(100%, 12rem);
-    grid-template-columns: minmax(8.5rem, 12rem);
+    width: min(100%, 16rem);
+    grid-template-columns: minmax(12rem, 16rem);
+  }
+
+  .story-controls-intro .story-main-button {
+    min-height: clamp(3.45rem, 6.4svh, 4.3rem);
+    font-size: clamp(1.15rem, 1.35vw, 1.38rem);
+    box-shadow: 0.42rem 0.42rem 0 var(--story-shadow);
   }
 
   .story-main-button,
