@@ -11,15 +11,15 @@ export default function MethodologyPage() {
     <TransparencyPageShell
       eyebrow="Methodology"
       title="Methodology"
-      deck="How the receipt is built: taxable income in, resident tax rules applied, then an illustrative proportional Budget map."
+      deck="How the receipt is built: salary before tax in, resident tax rules applied, then an illustrative proportional Budget map."
       tone="blue"
       posterWord="METHOD"
     >
-      <TransparencySection eyebrow="Step 01" title="Start with taxable income">
+      <TransparencySection eyebrow="Step 01" title="Start with salary before tax">
         <p>
-          You enter taxable income, not gross salary. That means the number
-          after any deductions or income adjustments that would affect taxable
-          income. The app keeps that input in the current page only.
+          You enter your annual salary before tax, excluding super. If you
+          salary sacrifice, use your reduced salary figure. The app keeps that
+          input in the current page only.
         </p>
       </TransparencySection>
 
@@ -31,7 +31,8 @@ export default function MethodologyPage() {
         <ul>
           <li>Low Income Tax Offset (LITO) is included.</li>
           <li>
-            Medicare levy is simplified as 2% of taxable income when included.
+            Medicare levy is simplified as 2% of the entered salary figure when
+            included.
           </li>
           <li>
             The model is explanatory, not an ATO-grade tax return calculator.

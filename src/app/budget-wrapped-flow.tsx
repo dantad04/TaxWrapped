@@ -1394,7 +1394,7 @@ export function BudgetWrappedFlow() {
     },
     {
       kind: "input",
-      eyebrow: "Start with taxable income",
+      eyebrow: "Start with salary",
       title: "What should we wrap?",
       tone: "blue",
       surface: "charcoal",
@@ -1652,7 +1652,7 @@ export function BudgetWrappedFlow() {
               goNext();
             }}
           >
-            <label htmlFor="taxable-income">Taxable income</label>
+            <label htmlFor="taxable-income">Annual salary before tax</label>
             <div className="income-input-wrap">
               <span>$</span>
               <input
@@ -1666,8 +1666,8 @@ export function BudgetWrappedFlow() {
               />
             </div>
             <p>
-              Use taxable income, not salary. Your input stays in this page
-              only.
+              Exclude super. If you salary sacrifice, use your reduced salary
+              figure.
             </p>
           </form>
         </section>

@@ -66,7 +66,7 @@ export function ShareBudgetReceiptCard({
         <title id="share-card-title">{data.productName}</title>
         <desc id="share-card-desc">
           Estimated Commonwealth tax and additive Budget allocation summary for
-          sharing. Taxable income is not shown.
+          sharing. Salary before tax is not shown.
         </desc>
         <rect width="1080" height="1920" rx="86" fill="#29282e" />
         <path

@@ -46,7 +46,7 @@ describe("drilldown scroll affordance", () => {
     render(<Home />);
 
     fireEvent.click(screen.getByRole("button", { name: "Start" }));
-    fireEvent.change(screen.getByLabelText("Taxable income"), {
+    fireEvent.change(screen.getByLabelText("Annual salary before tax"), {
       target: { value: "90000" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Next" }));

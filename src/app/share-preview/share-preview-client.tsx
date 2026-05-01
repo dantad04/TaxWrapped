@@ -107,8 +107,8 @@ export function SharePreviewClient() {
         <h1>{isSamplePreview ? "Sample share preview" : "Share preview"}</h1>
         <span>
           {isSamplePreview
-            ? "Design QA uses a fixed sample estimate. This is not your actual result, and no taxable income is shown on the card."
-            : "This preview uses your current estimated tax amount. No taxable income is shown on the card."}
+            ? "Design QA uses a fixed sample estimate. This is not your actual result, and no salary before tax is shown on the card."
+            : "This preview uses your current estimated tax amount. No salary before tax is shown on the card."}
         </span>
       </header>
       <section className="share-preview-stage" aria-label="Share card preview">
@@ -125,8 +125,8 @@ export function SharePreviewClient() {
         </button>
       </div>
       <p className="share-preview-note">
-        The PNG is rendered in this browser as a 1080 by 1920 image. Taxable
-        income is not included on the card.
+        The PNG is rendered in this browser as a 1080 by 1920 image. Salary
+        before tax is not included on the card.
       </p>
       <div
         aria-hidden="true"

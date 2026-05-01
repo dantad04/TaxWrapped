@@ -18,9 +18,9 @@ export default function PrivacyPage() {
     >
       <TransparencySection title="What happens to income">
         <p>
-          Taxable income is used in your browser to calculate the estimate and
-          story cards. The website does not store taxable income in a database,
-          server session, analytics service, or account.
+          Your salary before tax is used in your browser to calculate the
+          estimate and story cards. The website does not store salary before
+          tax in a database, server session, analytics service, or account.
         </p>
       </TransparencySection>
 

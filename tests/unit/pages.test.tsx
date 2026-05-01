@@ -46,7 +46,7 @@ describe("routes", () => {
     render(<MethodologyPage />);
 
     expect(screen.getByRole("heading", { name: "Methodology" })).toBeDefined();
-    expect(screen.getByText(/taxable income, not gross salary/i)).toBeDefined();
+    expect(screen.getByText(/annual salary before tax/i)).toBeDefined();
     expect(screen.getByText(/Low Income Tax Offset \(LITO\)/)).toBeDefined();
     expect(screen.getByText(/Medicare levy is simplified as 2%/)).toBeDefined();
     expect(
@@ -70,7 +70,7 @@ describe("routes", () => {
     render(<PrivacyPage />);
 
     expect(screen.getByRole("heading", { name: "Privacy" })).toBeDefined();
-    expect(screen.getByText(/does not store taxable income/i)).toBeDefined();
+    expect(screen.getByText(/does not store salary before tax/i)).toBeDefined();
     expect(screen.getByText(/localStorage/)).toBeDefined();
     expect(screen.getByText(/sessionStorage/)).toBeDefined();
     expect(screen.getByText(/cookies/)).toBeDefined();

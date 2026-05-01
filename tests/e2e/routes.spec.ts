@@ -61,6 +61,14 @@ async function waitForStoryHydration(page: Page) {
   );
 }
 
+async function expectNoVisibleTaxableIncome(page: Page, context: string) {
+  const renderedText = await page.evaluate(() => document.body.textContent ?? "");
+
+  expect(renderedText, `${context} rendered text`).not.toMatch(
+    /taxable income/i,
+  );
+}
+
 async function waitForAnimationFrame(page: Page) {
   await page.waitForFunction(
     () =>
@@ -78,6 +86,7 @@ test.describe("routes", () => {
       await expect(
         page.getByRole("heading", { name: route.heading }),
       ).toBeVisible();
+      await expectNoVisibleTaxableIncome(page, route.path);
     });
   }
 });
@@ -90,7 +99,7 @@ test.describe("mobile story flow", () => {
     await page.goto("/");
     await waitForStoryHydration(page);
     await clickStoryButton(page, "Start");
-    await page.getByLabel("Taxable income").fill("90000");
+    await page.getByLabel("Annual salary before tax").fill("90000");
     await clickStoryButton(page, "Next");
   }
 
@@ -111,8 +120,17 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("heading", { name: "What should we wrap?" }),
     ).toBeVisible();
+    await expect(
+      page.getByLabel("Annual salary before tax"),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "Exclude super. If you salary sacrifice, use your reduced salary figure.",
+      ),
+    ).toBeVisible();
+    await expectNoVisibleTaxableIncome(page, "income input screen");
 
-    await page.getByLabel("Taxable income").fill("90000");
+    await page.getByLabel("Annual salary before tax").fill("90000");
     await clickStoryButton(page, "Next");
     await expect(
       page.getByRole("heading", { name: "Your tax estimate" }),
@@ -129,7 +147,9 @@ test.describe("mobile story flow", () => {
     await expect(
       page.getByRole("heading", { name: "What should we wrap?" }),
     ).toBeVisible();
-    await expect(page.getByLabel("Taxable income")).toHaveValue("90000");
+    await expect(page.getByLabel("Annual salary before tax")).toHaveValue(
+      "90000",
+    );
 
     await clickStoryButton(page, "Next");
     await clickStoryButton(page, "Next");
@@ -278,7 +298,7 @@ test.describe("mobile story flow", () => {
       page.getByRole("button", { name: "Start", exact: true }),
     ).toBeEnabled();
     await clickStoryButton(page, "Start");
-    await expect(page.getByLabel("Taxable income")).toHaveValue("");
+    await expect(page.getByLabel("Annual salary before tax")).toHaveValue("");
 
     const storageLengths = await page.evaluate(() => ({
       local: window.localStorage.length,
@@ -792,7 +812,7 @@ async function startStoryWithIncome(page: Page, income: number) {
   await expectVisibleHeroesToFit(page, `intro income ${income}`);
   await clickStoryButton(page, "Start");
   await expectVisibleHeroesToFit(page, `input income ${income}`);
-  await page.getByLabel("Taxable income").fill(String(income));
+  await page.getByLabel("Annual salary before tax").fill(String(income));
   await clickStoryButton(page, "Next");
 }
 
@@ -1064,7 +1084,7 @@ async function walkFlowAndAssertMobileViewportFit(
     `income input ${income}`,
   );
 
-  await page.getByLabel("Taxable income").fill(String(income));
+  await page.getByLabel("Annual salary before tax").fill(String(income));
   await clickStoryButton(page, "Next");
   await expect(
     page.getByRole("heading", { name: "Your tax estimate" }),
@@ -1431,7 +1451,7 @@ async function walkDesktopFlowAndAssertContainment(page: Page) {
   ).toBeVisible();
   await expectDesktopContentContained(page, "desktop income input");
 
-  await page.getByLabel("Taxable income").fill("90000");
+  await page.getByLabel("Annual salary before tax").fill("90000");
   await clickStoryButton(page, "Next");
   await expect(
     page.getByRole("heading", { name: "Your tax estimate" }),
@@ -1563,7 +1583,7 @@ test.describe("fit-to-width hero typography", () => {
     );
 
     await clickStoryButton(page, "Start");
-    await page.getByLabel("Taxable income").fill("90000");
+    await page.getByLabel("Annual salary before tax").fill("90000");
 
     const firstFrame = await captureFirstFitFrameAfterClick(
       page,
@@ -1608,7 +1628,7 @@ test.describe("fit-to-width hero typography", () => {
       page.getByRole("heading", { name: "What should we wrap?" }),
     ).toBeVisible();
 
-    await page.getByLabel("Taxable income").fill("90000");
+    await page.getByLabel("Annual salary before tax").fill("90000");
     await clickAndAssertTransitionHidesHero(page, "Next", "input to tax");
     await expect(
       page.getByRole("heading", { name: "Your tax estimate" }),
@@ -1704,7 +1724,7 @@ test.describe("share preview", () => {
     await waitForStoryHydration(page);
     await clickStoryButton(page, "Start");
     await waitForHeroFitCycle(page);
-    await page.getByLabel("Taxable income").fill("90000");
+    await page.getByLabel("Annual salary before tax").fill("90000");
     await clickStoryButton(page, "Next");
     await waitForHeroFitCycle(page);
 
