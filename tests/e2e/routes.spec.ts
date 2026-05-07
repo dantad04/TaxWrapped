@@ -154,36 +154,6 @@ test.describe("mobile story flow", () => {
     await clickStoryButton(page, "Next");
     await clickStoryButton(page, "Next");
     await expect(
-      page.getByRole("heading", { name: "Bracket by bracket." }),
-    ).toBeVisible();
-    const bracketWalkCard = page.locator(".story-card-bracket-walk");
-    await expect(bracketWalkCard).toContainText("How your tax was built");
-    await expect(bracketWalkCard).toContainText("Total estimate");
-    await expect(bracketWalkCard).toContainText(displayedTaxTotal);
-    await expect(bracketWalkCard).not.toContainText(
-      /exactly where your tax dollars went|fair|unfair/i,
-    );
-
-    await clickStoryButton(page, "Next");
-    await expect(
-      page.getByRole("heading", { name: "Mapped across the Budget" }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("img", { name: /Big-picture allocation chart/ }),
-    ).toBeVisible();
-    await expect(
-      page
-        .locator(".allocation-chart-key")
-        .getByText(/Social security\s+and welfare/),
-    ).toBeVisible();
-    await expect(
-      page.locator(".story-content .story-caveat").getByText(
-        /Taxes are not hypothecated/,
-      ),
-    ).toBeVisible();
-
-    await clickStoryButton(page, "Next");
-    await expect(
       page.getByRole("heading", { name: "Social security & welfare" }),
     ).toBeVisible();
     await expect(
@@ -318,15 +288,6 @@ test.describe("mobile story flow", () => {
     ).toBeVisible();
     await clickStoryButton(page, "Next");
     await expect(
-      page.getByRole("heading", { name: "Bracket by bracket." }),
-    ).toBeVisible();
-    await clickStoryButton(page, "Next");
-    await expect(
-      page.getByRole("heading", { name: "Mapped across the Budget" }),
-    ).toBeVisible();
-
-    await clickStoryButton(page, "Next");
-    await expect(
       page.getByRole("heading", { name: "Social security & welfare" }),
     ).toBeVisible();
     await expect(
@@ -375,8 +336,6 @@ test.describe("mobile story flow", () => {
     await expect(page.getByTestId("coda-credit")).toHaveCount(0);
 
     const stepsBeforeCoda = [
-      "Bracket by bracket.",
-      "Mapped across the Budget",
       "Social security & welfare",
       "Health",
       "Education",
@@ -832,13 +791,6 @@ async function walkFlowAndAssertHeroFit(page: Page, income: number) {
   await expect(page.getByRole("heading", { name: "Your tax estimate" })).toBeVisible();
   await expectVisibleHeroesToFit(page, `tax income ${income}`);
 
-  await advanceAndFit(page, "Bracket by bracket.", `bracket income ${income}`);
-  await advanceAndFit(
-    page,
-    "Mapped across the Budget",
-    `allocation income ${income}`,
-  );
-
   const categoryHeadings = [
     "Social security & welfare",
     "Health",
@@ -885,12 +837,6 @@ async function walkFlowAndAssertHeroFit(page: Page, income: number) {
 async function advanceToFirstCategory(page: Page) {
   await startStoryWithIncome(page, 90000);
   await expect(page.getByRole("heading", { name: "Your tax estimate" })).toBeVisible();
-  await advanceAndFit(page, "Bracket by bracket.", "category preflight bracket");
-  await advanceAndFit(
-    page,
-    "Mapped across the Budget",
-    "category preflight allocation",
-  );
 }
 
 async function expectCategoryHeroAmountLargest(page: Page, context: string) {
@@ -1091,19 +1037,6 @@ async function walkFlowAndAssertMobileViewportFit(
   ).toBeVisible();
   await expectMobileStepToFitViewport(page, viewport, `tax income ${income}`);
 
-  await advanceAndAssertMobileViewportFit(
-    page,
-    "Bracket by bracket.",
-    viewport,
-    `bracket income ${income}`,
-  );
-  await advanceAndAssertMobileViewportFit(
-    page,
-    "Mapped across the Budget",
-    viewport,
-    `allocation income ${income}`,
-  );
-
   const categoryHeadings = [
     "Social security & welfare",
     "Health",
@@ -1187,12 +1120,6 @@ test.describe("mobile flow viewport fit", () => {
 async function openSocialSecurityDrilldown(page: Page) {
   await startStoryWithIncome(page, 90000);
   await expect(page.getByRole("heading", { name: "Your tax estimate" })).toBeVisible();
-  await advanceAndFit(page, "Bracket by bracket.", "bracket for drilldown");
-  await advanceAndFit(
-    page,
-    "Mapped across the Budget",
-    "allocation for drilldown",
-  );
   await advanceAndFit(
     page,
     "Social security & welfare",
@@ -1458,17 +1385,6 @@ async function walkDesktopFlowAndAssertContainment(page: Page) {
   ).toBeVisible();
   await expectDesktopContentContained(page, "desktop tax estimate");
 
-  await advanceDesktopAndAssert(
-    page,
-    "Bracket by bracket.",
-    "desktop bracket walk",
-  );
-  await advanceDesktopAndAssert(
-    page,
-    "Mapped across the Budget",
-    "desktop allocation",
-  );
-
   const categoryHeadings = [
     "Social security & welfare",
     "Health",
@@ -1634,24 +1550,10 @@ test.describe("fit-to-width hero typography", () => {
       page.getByRole("heading", { name: "Your tax estimate" }),
     ).toBeVisible();
 
-    await clickAndAssertTransitionHidesHero(page, "Next", "tax to bracket");
-    await expect(
-      page.getByRole("heading", { name: "Bracket by bracket." }),
-    ).toBeVisible();
-
     await clickAndAssertTransitionHidesHero(
       page,
       "Next",
-      "bracket to allocation",
-    );
-    await expect(
-      page.getByRole("heading", { name: "Mapped across the Budget" }),
-    ).toBeVisible();
-
-    await clickAndAssertTransitionHidesHero(
-      page,
-      "Next",
-      "allocation to category",
+      "tax to category",
     );
     await expect(
       page.getByRole("heading", { name: "Social security & welfare" }),
@@ -1672,12 +1574,6 @@ test.describe("fit-to-width hero typography", () => {
   }) => {
     async function getFirstCategoryAmountFontSize(income: number) {
       await startStoryWithIncome(page, income);
-      await advanceAndFit(page, "Bracket by bracket.", `bracket ${income}`);
-      await advanceAndFit(
-        page,
-        "Mapped across the Budget",
-        `allocation ${income}`,
-      );
       await advanceAndFit(
         page,
         "Social security & welfare",

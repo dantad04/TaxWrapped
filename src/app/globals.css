@@ -7,6 +7,7 @@
   --story-ink: #151515;
   --story-charcoal: #29282e;
   --story-red: #df1f26;
+  --story-neon-red: #ff1638;
   --story-blue: #2e55ff;
   --story-green: #149c48;
   --story-magenta: #bb33b6;
@@ -859,12 +860,13 @@ button {
   }
 
   .story-card-category .category-hit .story-number {
-    line-height: 0.7;
+    line-height: 0.82;
   }
 
   .story-card-category .category-hit .story-category-title {
     max-width: 16.5rem;
     line-height: 0.9;
+    margin-top: clamp(0.75rem, 2.4dvh, 1.35rem);
   }
 
   .category-chart,
@@ -935,15 +937,17 @@ button {
 
   .story-detail-button {
     border-width: 2px;
-    padding: 0.42rem 0.64rem;
-    font-size: clamp(0.66rem, 2.55vw, 0.78rem);
-    box-shadow: 0.14rem 0.14rem 0 var(--story-ink);
+    min-width: min(100%, 15.2rem);
+    min-height: 3.05rem;
+    padding: 0.72rem 0.94rem;
+    font-size: clamp(0.82rem, 3.15vw, 0.96rem);
+    box-shadow: 0.22rem 0.22rem 0 var(--story-ink);
   }
 
   .story-card-category .story-detail-button {
-    min-width: min(100%, 13.2rem);
-    padding: 0.54rem 0.74rem;
-    font-size: clamp(0.72rem, 2.75vw, 0.84rem);
+    min-width: min(100%, 16rem);
+    padding: 0.82rem 1rem;
+    font-size: clamp(0.86rem, 3.35vw, 1rem);
   }
 
   .story-sources-button {
@@ -1747,17 +1751,34 @@ button {
 }
 
 .story-detail-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(100%, 16rem);
+  min-height: 3.35rem;
   border: 3px solid var(--story-ink);
   border-radius: 999px;
-  padding: 0.52rem 0.82rem;
+  padding: 0.86rem 1.25rem;
   color: #fbfaf5;
-  background: var(--story-accent);
-  font-size: clamp(0.76rem, 3vw, 0.92rem);
+  background: var(--story-neon-red);
+  font-size: clamp(0.92rem, 3.4vw, 1.12rem);
   line-height: 1;
   font-weight: 950;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+  text-align: center;
   text-transform: uppercase;
-  box-shadow: 0.22rem 0.22rem 0 var(--story-ink);
+  box-shadow:
+    0.34rem 0.34rem 0 var(--story-ink),
+    0 0 1.05rem rgba(255, 22, 56, 0.72),
+    0 0 2.3rem rgba(255, 22, 56, 0.36);
+}
+
+.story-detail-button:not(:disabled):hover {
+  transform: translate(-0.05rem, -0.05rem);
+  box-shadow:
+    0.42rem 0.42rem 0 var(--story-ink),
+    0 0 1.3rem rgba(255, 22, 56, 0.86),
+    0 0 2.75rem rgba(255, 22, 56, 0.46);
 }
 
 .story-detail-button:focus-visible,
@@ -3073,11 +3094,48 @@ button.summary-chart-row {
     font-size: clamp(3.2rem, 6vw, 5.2rem);
   }
 
-  .tax-poster-mark {
-    align-self: center;
+  .story-card-tax .story-moment {
+    grid-template-columns: minmax(0, clamp(24rem, 52vw, 42rem)) minmax(8rem, 13rem);
+    grid-template-areas:
+      "eyebrow mark"
+      "title mark"
+      "number mark"
+      "copy mark"
+      "links mark";
+    justify-content: start;
+    align-content: center;
+    align-items: center;
+    gap: clamp(0.62rem, 1.15svh, 0.95rem) clamp(1.6rem, 4.8vw, 4.25rem);
+  }
+
+  .story-card-tax .story-eyebrow {
+    grid-area: eyebrow;
+  }
+
+  .story-card-tax .story-title {
+    grid-area: title;
+  }
+
+  .story-card-tax .story-number {
+    grid-area: number;
     justify-self: center;
-    width: clamp(11rem, 16vw, 15rem);
-    height: clamp(6rem, 9vw, 8rem);
+    text-align: center;
+  }
+
+  .story-card-tax .story-copy {
+    grid-area: copy;
+  }
+
+  .story-card-tax .story-transparency-links {
+    grid-area: links;
+  }
+
+  .story-card-tax .tax-poster-mark {
+    grid-area: mark;
+    align-self: center;
+    justify-self: start;
+    width: clamp(8.4rem, 14vw, 13rem);
+    height: clamp(4.7rem, 7.8vw, 7.1rem);
   }
 
   .bracket-walk-list {
@@ -3166,32 +3224,39 @@ button.summary-chart-row {
 
   .category-hit .story-kicker {
     grid-area: kicker;
+    justify-self: center;
     max-width: 15ch;
+    text-align: center;
   }
 
   .category-hit .story-number {
     grid-area: number;
-    justify-self: stretch;
+    justify-self: center;
+    text-align: center;
   }
 
   .category-hit .story-category-title {
     grid-area: title;
+    justify-self: center;
     max-width: 18ch;
+    text-align: center;
   }
 
   .category-hit .story-copy {
     grid-area: copy;
+    justify-self: center;
     max-width: 34rem;
+    text-align: center;
   }
 
   .category-hit .story-pill {
     grid-area: pill;
-    justify-self: start;
+    justify-self: center;
   }
 
   .category-hit .story-detail-button {
     grid-area: button;
-    justify-self: start;
+    justify-self: center;
   }
 
   .category-hit .category-chart,
@@ -3275,8 +3340,8 @@ button.summary-chart-row {
 
   .drilldown-headline {
     grid-area: headline;
-    justify-items: start;
-    text-align: left;
+    justify-items: center;
+    text-align: center;
   }
 
   .drilldown-headline p,
@@ -3285,7 +3350,7 @@ button.summary-chart-row {
   }
 
   .drilldown-headline strong {
-    justify-self: stretch;
+    justify-self: center;
   }
 
   .drilldown-bars-shell {
@@ -3483,6 +3548,16 @@ button.summary-chart-row {
     bottom: auto;
     width: 100%;
     transform: none;
+  }
+
+  .story-controls-intro .story-controls-actions {
+    position: absolute;
+    left: 0;
+    bottom: clamp(4rem, 10svh, 6.25rem);
+  }
+
+  .story-controls-intro .story-controls-caveat {
+    display: none;
   }
 
   .story-controls-links {

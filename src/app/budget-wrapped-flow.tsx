@@ -10,7 +10,6 @@ import {
   useState,
 } from "react";
 import {
-  AllocationStackedChart,
   CategoryShareChart,
   SpotlightMarkerChart,
   SummaryRankedBarChart,
@@ -50,8 +49,6 @@ import { useCountUp } from "@/hooks/use-count-up";
 import { useFitText } from "@/hooks/use-fit-text";
 import { setSharePreviewEstimatedTax } from "@/lib/share/share-preview-state";
 import { estimateAustralianTax2025_26 } from "@/lib/tax/australian-resident-2025-26";
-import type { BracketWalkRow } from "@/lib/tax/bracket-walk";
-import { buildBracketWalk } from "@/lib/tax/bracket-walk";
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
   style: "currency",
@@ -201,8 +198,6 @@ type StepKind =
   | "intro"
   | "input"
   | "tax"
-  | "bracket-walk"
-  | "allocation"
   | "category"
   | "spotlight"
   | "drilldown"
@@ -500,74 +495,6 @@ function PosterYear() {
     >
       25-26
     </FitText>
-  );
-}
-
-function TaxBracketWalkCard({
-  rows,
-  totalAmount,
-  title,
-}: {
-  rows: readonly BracketWalkRow[];
-  totalAmount: number;
-  title: string;
-}) {
-  return (
-    <section className="story-moment bracket-walk-card">
-      <p className="story-eyebrow">How your tax was built</p>
-      <FitText
-        as="h2"
-        className="story-title"
-        deps={[title]}
-        fitId="bracket-title"
-        maxPx={80}
-        mobileMaxPx={56}
-        minPx={34}
-      >
-        {title}
-      </FitText>
-      <div className="bracket-walk-list" aria-label="Tax bracket breakdown">
-        {rows.map((row) => (
-          <div
-            key={row.id}
-            className={`bracket-walk-row bracket-walk-row-${row.kind}`}
-          >
-            <div className="bracket-walk-main">
-              <strong>{row.label}</strong>
-              {row.rateLabel && (
-                <span className="bracket-walk-rate">{row.rateLabel}</span>
-              )}
-            </div>
-            <div className="bracket-walk-detail">
-              {row.taxableAmount === null ? (
-                <span>{row.kind === "offset" ? "Offset applied" : "Added to estimate"}</span>
-              ) : (
-                <span>{formatCurrency(row.taxableAmount)} taxed</span>
-              )}
-              <strong className="bracket-walk-amount">
-                {formatCurrency(row.amount)}
-              </strong>
-            </div>
-          </div>
-        ))}
-        <div className="bracket-walk-row bracket-walk-total">
-          <div className="bracket-walk-main">
-            <strong>Total estimate</strong>
-          </div>
-          <AnimatedCurrency
-            amount={totalAmount}
-            as="strong"
-            className="bracket-walk-total-amount"
-            fit={{
-              id: "bracket-total",
-              minPx: 30,
-              maxPx: 56,
-              mobileMaxPx: 44,
-            }}
-          />
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -1357,13 +1284,6 @@ export function BudgetWrappedFlow() {
     () => allocateTaxAcrossBudgetFunctions(taxEstimate.totalEstimatedTax),
     [taxEstimate.totalEstimatedTax],
   );
-  const bracketWalkRows = useMemo(
-    () =>
-      buildBracketWalk(taxableIncome ?? 0, {
-        includeMedicareLevy: true,
-      }),
-    [taxableIncome],
-  );
   const spotlightSummary = useMemo(
     () => calculateSpotlightAllocation(taxEstimate.totalEstimatedTax),
     [taxEstimate.totalEstimatedTax],
@@ -1405,20 +1325,6 @@ export function BudgetWrappedFlow() {
       title: "Your tax estimate",
       tone: "red",
       surface: "charcoal",
-    },
-    {
-      kind: "bracket-walk",
-      eyebrow: "How your tax was built",
-      title: "Bracket by bracket.",
-      tone: "green",
-      surface: "charcoal",
-    },
-    {
-      kind: "allocation",
-      eyebrow: "Budget map",
-      title: "Mapped across the Budget",
-      tone: "blue",
-      surface: "paper",
     },
     ...categoryStories.map(({ meta }) => ({
       kind: "category" as const,
@@ -1692,7 +1598,7 @@ export function BudgetWrappedFlow() {
             amount={taxEstimate.totalEstimatedTax}
             as="p"
             className="story-number story-number-red"
-            fit={{ id: "tax-total", minPx: 54, maxPx: 108, mobileMaxPx: 92 }}
+            fit={{ id: "tax-total", minPx: 54, maxPx: 100, mobileMaxPx: 92 }}
           />
           <p className="story-copy">
             Including a simplified Medicare levy. Still an estimate, not tax
@@ -1701,54 +1607,6 @@ export function BudgetWrappedFlow() {
           <TransparencyLinkGroup
             links={[
               { href: "/methodology", label: "How calculated" },
-              { href: "/sources", label: "Sources" },
-            ]}
-          />
-        </section>
-      )}
-
-      {!activeDrilldownView && currentStep.kind === "bracket-walk" && (
-        <TaxBracketWalkCard
-          rows={bracketWalkRows}
-          totalAmount={taxEstimate.totalEstimatedTax}
-          title={currentStep.title}
-        />
-      )}
-
-      {!activeDrilldownView && currentStep.kind === "allocation" && (
-        <section className="story-moment story-moment-allocation">
-          <p className="story-eyebrow">{currentStep.eyebrow}</p>
-          <FitText
-            as="h2"
-            className="story-title"
-            deps={[currentStep.title]}
-            fitId="allocation-title"
-            maxPx={84}
-            mobileMaxPx={58}
-            minPx={34}
-          >
-            {currentStep.title}
-          </FitText>
-          <p className="allocation-hero">
-            <FitText
-              as="span"
-              deps={[formatCurrency(taxEstimate.totalEstimatedTax)]}
-              fitId="allocation-total"
-              maxPx={62}
-              mobileMaxPx={48}
-              minPx={30}
-            >
-              {formatCurrency(taxEstimate.totalEstimatedTax)}
-            </FitText>
-            split proportionally
-          </p>
-          <AllocationStackedChart summary={allocationSummary} />
-          <p className="story-caveat">
-            Illustrative only. Taxes are not hypothecated.
-          </p>
-          <TransparencyLinkGroup
-            links={[
-              { href: "/methodology", label: "Methodology" },
               { href: "/sources", label: "Sources" },
             ]}
           />
