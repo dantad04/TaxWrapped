@@ -3334,7 +3334,7 @@ button.summary-chart-row {
     height: 100%;
     min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1.38fr) minmax(18rem, 0.98fr);
+    grid-template-columns: minmax(0, 1.08fr) minmax(23rem, 1.36fr);
     grid-template-areas:
       "eyebrow chart"
       "kicker chart"
@@ -3457,25 +3457,37 @@ button.summary-chart-row {
   }
 
   .embedded-breakdown {
-    gap: clamp(0.42rem, 0.78vw, 0.62rem);
-    padding: clamp(0.62rem, 0.95vw, 0.84rem) clamp(0.72rem, 1vw, 0.92rem);
+    gap: clamp(0.55rem, 1.02vw, 0.82rem);
+    padding: clamp(0.84rem, 1.26vw, 1.12rem) clamp(0.96rem, 1.42vw, 1.24rem);
+    border-width: 3px;
+    box-shadow: 0.25rem 0.25rem 0 var(--story-ink);
+  }
+
+  .embedded-breakdown-topline span {
+    font-size: clamp(0.78rem, 1vw, 0.96rem);
+  }
+
+  .embedded-breakdown-topline small {
+    font-size: clamp(0.66rem, 0.82vw, 0.78rem);
   }
 
   .embedded-breakdown-row {
-    grid-template-columns: minmax(5.4rem, 30%) auto minmax(0, 1fr);
-    gap: 0.58rem;
+    grid-template-columns: minmax(7.2rem, 32%) auto minmax(0, 1fr);
+    gap: 0.72rem;
   }
 
   .embedded-breakdown-track {
-    height: clamp(0.95rem, 1.22vw, 1.16rem);
+    height: clamp(1.18rem, 1.6vw, 1.52rem);
+    border-width: 3px;
   }
 
   .embedded-breakdown-row strong {
-    font-size: clamp(1.05rem, 1.65vw, 1.42rem);
+    font-size: clamp(1.28rem, 2.05vw, 1.86rem);
   }
 
   .embedded-breakdown-label {
-    font-size: clamp(0.7rem, 0.94vw, 0.84rem);
+    font-size: clamp(0.84rem, 1.14vw, 1.04rem);
+    line-height: 1.08;
   }
 
   .story-secondary-button,
@@ -3818,6 +3830,32 @@ button.summary-chart-row {
   .story-card-spotlight .category-hit,
   .drilldown-card {
     gap: clamp(0.52rem, 1svh, 0.82rem) clamp(1rem, 2.4vw, 1.8rem);
+  }
+
+  .story-card-category .category-hit {
+    grid-template-columns: minmax(0, 1fr) minmax(21rem, 1.24fr);
+  }
+
+  .embedded-breakdown {
+    gap: clamp(0.44rem, 0.86vw, 0.64rem);
+    padding: clamp(0.68rem, 1.08vw, 0.88rem) clamp(0.76rem, 1.16vw, 0.96rem);
+  }
+
+  .embedded-breakdown-row {
+    grid-template-columns: minmax(6.2rem, 31%) auto minmax(0, 1fr);
+    gap: 0.58rem;
+  }
+
+  .embedded-breakdown-track {
+    height: clamp(1rem, 1.32vw, 1.22rem);
+  }
+
+  .embedded-breakdown-row strong {
+    font-size: clamp(1.1rem, 1.78vw, 1.46rem);
+  }
+
+  .embedded-breakdown-label {
+    font-size: clamp(0.74rem, 1vw, 0.88rem);
   }
 
   .story-controls {
