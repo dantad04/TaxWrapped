@@ -61,6 +61,7 @@ export function useFitText<T extends HTMLElement>({
     fittedKey: null,
   });
   const frameRef = useRef<number | null>(null);
+  const timeoutRef = useRef<number | null>(null);
   const mountedRef = useRef(false);
   const isFitted = fitState.fittedKey === fitKey;
   const fontSize = isFitted ? fitState.fontSize : maximum;
@@ -91,6 +92,11 @@ export function useFitText<T extends HTMLElement>({
       window.cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
     }
+
+    if (timeoutRef.current !== null && canMeasureText()) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   }, []);
 
   const scheduleFit = useCallback(() => {
@@ -101,8 +107,16 @@ export function useFitText<T extends HTMLElement>({
 
     cancelFit();
 
-    frameRef.current = window.requestAnimationFrame(() => {
-      frameRef.current = null;
+    const measureFit = () => {
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
 
       const element = ref.current;
       const parent = element?.parentElement;
@@ -158,7 +172,12 @@ export function useFitText<T extends HTMLElement>({
       if (mountedRef.current) {
         setMeasuredFontSize(fitted);
       }
-    });
+    };
+
+    frameRef.current = window.requestAnimationFrame(measureFit);
+    // Embedded preview panes can throttle animation frames.
+    // Keep the text from staying hidden forever if rAF does not run promptly.
+    timeoutRef.current = window.setTimeout(measureFit, 120);
   }, [
     cancelFit,
     maximum,
@@ -182,13 +201,13 @@ export function useFitText<T extends HTMLElement>({
       return undefined;
     }
 
-    const initialFrame = window.requestAnimationFrame(() => scheduleFit());
+    const initialTimeout = window.setTimeout(scheduleFit, 0);
 
     const parent = ref.current?.parentElement;
 
     if (!parent || typeof ResizeObserver === "undefined") {
       return () => {
-        window.cancelAnimationFrame(initialFrame);
+        window.clearTimeout(initialTimeout);
         cancelFit();
       };
     }
@@ -197,7 +216,7 @@ export function useFitText<T extends HTMLElement>({
     observer.observe(parent);
 
     return () => {
-      window.cancelAnimationFrame(initialFrame);
+      window.clearTimeout(initialTimeout);
       observer.disconnect();
       cancelFit();
     };

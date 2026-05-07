@@ -87,6 +87,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
@@ -148,6 +149,24 @@ describe("useFitText", () => {
     });
 
     await waitFor(() => expect(getRenderedFontSize()).toBeLessThan(180));
+  });
+
+  it("falls back when animation frames are delayed", async () => {
+    vi.useFakeTimers();
+    vi.mocked(window.requestAnimationFrame).mockImplementation(() => 1);
+
+    render(
+      <FitTextHarness content="$5" minPx={40} maxPx={180} width={320} />,
+    );
+
+    expect(getRenderedVisibility()).toBe("hidden");
+
+    await act(async () => {
+      vi.advanceTimersByTime(120);
+    });
+
+    expect(getRenderedFontSize()).toBe(180);
+    expect(getRenderedVisibility()).toBe("visible");
   });
 
   it("returns max on the server when there is no window", () => {
