@@ -14,22 +14,27 @@ const INTRO_VIEWPORTS = [
 const CATEGORY_CARD_EXPECTATIONS = [
   {
     heading: "Social security & welfare",
+    breakdownText: "Assistance to the aged",
     calloutText: "Funds assistance for families with children.",
   },
   {
     heading: "Health",
+    breakdownText: "Medical services and benefits",
     calloutText: "Funds public hospital assistance to states and territories.",
   },
   {
     heading: "Education",
+    breakdownText: "Schools",
     calloutText: "Funds school education expenses across school sectors.",
   },
   {
     heading: "Defence",
+    breakdownText: "Capability Acquisition Program",
     calloutText: "Funds Defence workforce costs.",
   },
   {
     heading: "Energy & resources",
+    breakdownText: "Fuel and energy",
     calloutText:
       "Funds the Fuel and energy sub-function reported in BP1 Appendix A.",
   },
@@ -176,7 +181,7 @@ test.describe("mobile story flow", () => {
 
     await clickStoryButton(page, "Next");
     await expect(page.getByRole("heading", { name: "Defence" })).toBeVisible();
-    await clickStoryButton(page, "Open breakdown");
+    await clickStoryButton(page, "View full breakdown");
     await expect(page.getByText("to Defence.")).toBeVisible();
     await expect(
       page
@@ -293,7 +298,7 @@ test.describe("mobile story flow", () => {
     await expect(
       page.locator(".story-card-category").getByTestId("program-callouts"),
     ).not.toBeVisible();
-    await clickStoryButton(page, "Open breakdown");
+    await clickStoryButton(page, "View full breakdown");
     await expect(page.getByTestId("drilldown-programs")).toContainText(
       "Assistance to families with children",
     );
@@ -304,7 +309,7 @@ test.describe("mobile story flow", () => {
     await expect(
       page.locator(".story-card-category").getByTestId("program-callouts"),
     ).not.toBeVisible();
-    await clickStoryButton(page, "Open breakdown");
+    await clickStoryButton(page, "View full breakdown");
     await expect(page.getByTestId("drilldown-programs")).toContainText(
       "Assistance to the states for public hospitals",
     );
@@ -317,7 +322,7 @@ test.describe("mobile story flow", () => {
     await expect(
       page.locator(".story-card-category").getByTestId("program-callouts"),
     ).not.toBeVisible();
-    await clickStoryButton(page, "Open breakdown");
+    await clickStoryButton(page, "View full breakdown");
     await expect(page.getByTestId("drilldown-programs")).toContainText("Schools");
 
     await page
@@ -803,7 +808,7 @@ async function walkFlowAndAssertHeroFit(page: Page, income: number) {
     await advanceAndFit(page, heading, `${heading} income ${income}`);
 
     if (index === 0) {
-      await clickStoryButton(page, "Open breakdown");
+      await clickStoryButton(page, "View full breakdown");
       await expect(
         page.getByText(/to Social security and welfare\./),
       ).toBeVisible();
@@ -872,7 +877,7 @@ test.describe("mobile category card simplification", () => {
   test.setTimeout(90_000);
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("moves program callouts off each main card and into breakdowns", async ({
+  test("surfaces embedded breakdowns and keeps program callouts in full breakdowns", async ({
     page,
   }) => {
     await advanceToFirstCategory(page);
@@ -881,11 +886,16 @@ test.describe("mobile category card simplification", () => {
       await advanceAndFit(page, category.heading, `category ${category.heading}`);
 
       const mainCard = page.locator(".story-card-category");
+      const embeddedBreakdown = mainCard.getByTestId("embedded-breakdown");
 
+      await expect(embeddedBreakdown).toBeVisible();
+      await expect(embeddedBreakdown).toContainText(category.breakdownText);
+      await expectEmbeddedBreakdownAmountsDescending(page);
+      await expectFirstEmbeddedBreakdownBarLargest(page);
       await expect(mainCard.getByText(category.calloutText)).not.toBeVisible();
       await expectCategoryHeroAmountLargest(page, category.heading);
 
-      await clickStoryButton(page, "Open breakdown");
+      await clickStoryButton(page, "View full breakdown");
       await expect(page.locator(".story-card")).toHaveAttribute(
         "data-step",
         "drilldown",
@@ -971,7 +981,7 @@ test.describe("mobile category card simplification", () => {
     }
 
     await fs.mkdir("test-results", { recursive: true });
-    await clickStoryButton(page, "Open breakdown");
+    await clickStoryButton(page, "View full breakdown");
     await expect(page.getByTestId("drilldown-programs")).toBeVisible();
     await expect(page.getByTestId("drilldown-spotlights")).toBeVisible();
     await page.screenshot({
@@ -1054,7 +1064,7 @@ async function walkFlowAndAssertMobileViewportFit(
     );
 
     if (index === 0) {
-      await clickStoryButton(page, "Open breakdown");
+      await clickStoryButton(page, "View full breakdown");
       await expect(
         page.getByText(/to Social security and welfare\./),
       ).toBeVisible();
@@ -1125,7 +1135,7 @@ async function openSocialSecurityDrilldown(page: Page) {
     "Social security & welfare",
     "category for drilldown",
   );
-  await clickStoryButton(page, "Open breakdown");
+  await clickStoryButton(page, "View full breakdown");
   await expect(
     page.getByText(/to Social security and welfare\./),
   ).toBeVisible();
@@ -1134,6 +1144,43 @@ async function openSocialSecurityDrilldown(page: Page) {
 
 function parseCurrencyAmount(value: string) {
   return Number(value.replace(/[^0-9.-]/g, ""));
+}
+
+async function expectEmbeddedBreakdownAmountsDescending(page: Page) {
+  const amountTexts = await page
+    .getByTestId("embedded-breakdown-row")
+    .locator("strong")
+    .evaluateAll((elements) =>
+      elements.map((element) => element.textContent?.trim() ?? ""),
+    );
+  const amounts = amountTexts.map(parseCurrencyAmount);
+
+  expect(amounts.length).toBeGreaterThan(0);
+
+  for (let index = 1; index < amounts.length; index += 1) {
+    expect(amounts[index - 1]).toBeGreaterThanOrEqual(amounts[index]);
+  }
+}
+
+async function expectFirstEmbeddedBreakdownBarLargest(page: Page) {
+  const widths = await page
+    .locator(".embedded-breakdown-fill")
+    .evaluateAll((elements) =>
+      elements.map((element) => {
+        const value = (element as HTMLElement).style.getPropertyValue(
+          "--embedded-width",
+        );
+
+        return Number.parseFloat(value);
+      }),
+    );
+
+  expect(widths.length).toBeGreaterThan(0);
+  expect(widths[0]).toBe(100);
+
+  for (const width of widths) {
+    expect(widths[0]).toBeGreaterThanOrEqual(width);
+  }
 }
 
 async function expectDrilldownAmountsDescending(page: Page) {
@@ -1397,7 +1444,7 @@ async function walkDesktopFlowAndAssertContainment(page: Page) {
     await advanceDesktopAndAssert(page, heading, `desktop category ${heading}`);
 
     if (index === 0) {
-      await clickStoryButton(page, "Open breakdown");
+      await clickStoryButton(page, "View full breakdown");
       await expect(
         page.getByText(/to Social security and welfare\./),
       ).toBeVisible();
@@ -1561,7 +1608,7 @@ test.describe("fit-to-width hero typography", () => {
 
     await clickAndAssertTransitionHidesHero(
       page,
-      "Open breakdown",
+      "View full breakdown",
       "category to drilldown",
     );
     await expect(

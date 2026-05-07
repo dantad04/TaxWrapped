@@ -14,6 +14,7 @@ import {
   SpotlightMarkerChart,
   SummaryRankedBarChart,
 } from "@/components/budget-charts";
+import { EmbeddedFunctionBreakdown } from "@/components/embedded-function-breakdown";
 import {
   allocateTaxAcrossBudgetFunctions,
   calculateSpotlightAllocation,
@@ -1110,10 +1111,6 @@ function StoryFrame({
   const cardRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    if (currentKind !== "drilldown") {
-      return;
-    }
-
     const card = cardRef.current;
 
     if (!card) {
@@ -1127,7 +1124,7 @@ function StoryFrame({
 
     card.scrollTop = 0;
     card.scrollLeft = 0;
-  }, [currentKind]);
+  }, [currentKind, currentStep]);
 
   return (
     <main className="story-shell">
@@ -1215,6 +1212,7 @@ function StoryFrame({
 interface FunctionStory {
   meta: (typeof FUNCTION_STORY_META)[number];
   allocation: BudgetFunctionAllocation;
+  breakdownView: BudgetDrilldownView | null;
   callouts: readonly BudgetProgramCalloutAllocationRow[];
   sources: readonly CategorySourceEntry[];
 }
@@ -1226,6 +1224,7 @@ interface SpotlightStory {
 
 function buildFunctionStories(
   allocations: readonly BudgetFunctionAllocation[],
+  totalTaxAmount: number,
 ): FunctionStory[] {
   return FUNCTION_STORY_META.flatMap((meta) => {
     const allocation = allocations.find((item) => item.slug === meta.slug);
@@ -1236,6 +1235,9 @@ function buildFunctionStories(
           {
             meta,
             allocation,
+            breakdownView: calculateBudgetDrilldownView(totalTaxAmount, [
+              meta.slug,
+            ]),
             callouts: category
               ? calculateBudgetProgramCallouts(
                   allocation.amountCents,
@@ -1298,7 +1300,10 @@ export function BudgetWrappedFlow() {
         : null,
     [activeDrilldownPath, taxEstimate.totalEstimatedTax],
   );
-  const categoryStories = buildFunctionStories(allocationSummary.allocations);
+  const categoryStories = buildFunctionStories(
+    allocationSummary.allocations,
+    taxEstimate.totalEstimatedTax,
+  );
   const spotlightStories = buildSpotlightStories(spotlightSummary.allocations);
   const prepareSharePreview = useCallback(() => {
     setSharePreviewEstimatedTax(taxEstimate.totalEstimatedTax);
@@ -1649,10 +1654,6 @@ export function BudgetWrappedFlow() {
                 mobileMaxPx: 90,
               }}
             />
-            <ProgramCallouts
-              callouts={currentCategoryStory.callouts}
-              className="program-callouts-main"
-            />
             <FitText
               as="h2"
               className="story-category-title"
@@ -1667,6 +1668,9 @@ export function BudgetWrappedFlow() {
             <p className="story-copy story-copy-tight">
               {currentCategoryStory.meta.detail}
             </p>
+            <EmbeddedFunctionBreakdown
+              view={currentCategoryStory.breakdownView}
+            />
             <p className="story-pill story-pill-soft story-function-line">
               Additive function •{" "}
               {formatPercent(
@@ -1674,22 +1678,26 @@ export function BudgetWrappedFlow() {
               )}{" "}
               of the Budget function mix
             </p>
-            <button
-              type="button"
-              className="story-detail-button"
-              onClick={() => openDrilldown(currentCategoryStory.allocation.slug)}
-            >
-              Open breakdown
-            </button>
-            <button
-              type="button"
-              className="story-sources-button"
-              onClick={() =>
-                openSourcesSheet(currentCategoryStory.allocation.slug)
-              }
-            >
-              Sources
-            </button>
+            <div className="story-secondary-actions">
+              <button
+                type="button"
+                className="story-secondary-button"
+                onClick={() =>
+                  openDrilldown(currentCategoryStory.allocation.slug)
+                }
+              >
+                View full breakdown
+              </button>
+              <button
+                type="button"
+                className="story-sources-button"
+                onClick={() =>
+                  openSourcesSheet(currentCategoryStory.allocation.slug)
+                }
+              >
+                Sources
+              </button>
+            </div>
             {spotlightSummary.allocations.some(
               (spotlight) =>
                 spotlight.parentFunctionSlug ===

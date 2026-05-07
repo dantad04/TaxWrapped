@@ -482,7 +482,6 @@ button {
   gap: clamp(1rem, 3svh, 1.55rem);
 }
 
-.story-sources-button,
 .drilldown-detail-section,
 .sources-sheet-backdrop {
   display: none;
@@ -804,18 +803,18 @@ button {
   }
 
   .story-card-category .story-function-line {
-    order: 5;
-  }
-
-  .story-card-category .story-copy-tight {
-    order: 6;
-  }
-
-  .story-card-category .story-detail-button {
     order: 7;
   }
 
-  .story-card-category .story-sources-button {
+  .story-card-category .story-copy-tight {
+    order: 5;
+  }
+
+  .story-card-category .embedded-breakdown {
+    order: 6;
+  }
+
+  .story-card-category .story-secondary-actions {
     order: 8;
   }
 
@@ -935,35 +934,54 @@ button {
     opacity: 0.66;
   }
 
-  .story-detail-button {
-    border-width: 2px;
-    min-width: min(100%, 15.2rem);
-    min-height: 3.05rem;
-    padding: 0.72rem 0.94rem;
-    font-size: clamp(0.82rem, 3.15vw, 0.96rem);
-    box-shadow: 0.22rem 0.22rem 0 var(--story-ink);
+  .story-secondary-actions {
+    gap: 0.38rem;
   }
 
-  .story-card-category .story-detail-button {
-    min-width: min(100%, 16rem);
-    padding: 0.82rem 1rem;
-    font-size: clamp(0.86rem, 3.35vw, 1rem);
-  }
-
+  .story-secondary-button,
   .story-sources-button {
-    display: inline-flex;
-    min-width: min(100%, 10.8rem);
-    justify-content: center;
-    border: 2px solid var(--story-ink);
-    border-radius: 999px;
-    padding: 0.42rem 0.68rem;
-    color: var(--story-ink);
-    background: rgba(251, 250, 245, 0.5);
-    font-size: clamp(0.62rem, 2.35vw, 0.72rem);
-    line-height: 1;
-    font-weight: 950;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    padding: 0.38rem 0.58rem;
+    font-size: clamp(0.56rem, 2.1vw, 0.66rem);
+  }
+
+  .embedded-breakdown {
+    gap: clamp(0.28rem, 0.8dvh, 0.42rem);
+    max-width: 20rem;
+    padding: clamp(0.42rem, 1.25dvh, 0.6rem) 0.52rem;
+    border-width: 2px;
+    border-radius: 0.72rem;
+    box-shadow: 0.13rem 0.13rem 0 var(--story-ink);
+  }
+
+  .embedded-breakdown-topline span {
+    font-size: clamp(0.58rem, 2.18vw, 0.68rem);
+  }
+
+  .embedded-breakdown-topline small {
+    font-size: clamp(0.5rem, 1.85vw, 0.58rem);
+  }
+
+  .embedded-breakdown-list {
+    gap: clamp(0.2rem, 0.62dvh, 0.32rem);
+  }
+
+  .embedded-breakdown-row {
+    grid-template-columns: minmax(2.8rem, 28%) auto minmax(0, 1fr);
+    gap: 0.34rem;
+  }
+
+  .embedded-breakdown-track {
+    height: clamp(0.78rem, 3vw, 0.96rem);
+    border-width: 2px;
+    box-shadow: 0.08rem 0.08rem 0 var(--story-ink);
+  }
+
+  .embedded-breakdown-row strong {
+    font-size: clamp(0.86rem, 3.25vw, 1.08rem);
+  }
+
+  .embedded-breakdown-label {
+    font-size: clamp(0.58rem, 2.16vw, 0.68rem);
   }
 
   .story-mini-list {
@@ -1627,7 +1645,9 @@ button {
 
 .story-card-category .category-hit,
 .story-card-spotlight .category-hit {
+  width: 100%;
   gap: clamp(0.48rem, 1.8vw, 0.82rem);
+  justify-self: stretch;
 }
 
 .story-watermark {
@@ -1750,6 +1770,127 @@ button {
   background: color-mix(in srgb, var(--story-accent) 13%, transparent);
 }
 
+.embedded-breakdown {
+  display: grid;
+  gap: clamp(0.38rem, 1.15svh, 0.56rem);
+  width: min(100%, 23rem);
+  border: 3px solid var(--story-ink);
+  border-radius: 0.95rem;
+  padding: clamp(0.54rem, 1.8vw, 0.76rem) 0.66rem;
+  background: rgba(251, 250, 245, 0.86);
+  box-shadow: 0.2rem 0.2rem 0 var(--story-ink);
+  color: var(--story-ink);
+  text-align: left;
+}
+
+.embedded-breakdown-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.embedded-breakdown-topline span {
+  font-size: clamp(0.64rem, 2.35vw, 0.78rem);
+  line-height: 1;
+  font-weight: 1000;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.embedded-breakdown-topline small {
+  color: color-mix(in srgb, var(--story-ink) 56%, transparent);
+  font-size: clamp(0.54rem, 1.95vw, 0.64rem);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.embedded-breakdown-list {
+  display: grid;
+  gap: clamp(0.28rem, 0.9svh, 0.4rem);
+}
+
+.embedded-breakdown-row {
+  display: grid;
+  grid-template-columns: minmax(3.1rem, 30%) auto minmax(0, 1fr);
+  gap: 0.42rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.embedded-breakdown-track {
+  display: block;
+  height: clamp(0.9rem, 3.45vw, 1.12rem);
+  overflow: hidden;
+  border: 2px solid var(--story-ink);
+  background: #fbfaf5;
+  box-shadow: 0.1rem 0.1rem 0 var(--story-ink);
+}
+
+.embedded-breakdown-fill {
+  display: block;
+  width: var(--embedded-width);
+  height: 100%;
+  background: var(--story-accent);
+  transform-origin: left center;
+  animation: summary-bar-grow 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.embedded-breakdown-row strong {
+  color: var(--story-accent);
+  font-size: clamp(1rem, 3.8vw, 1.38rem);
+  line-height: 0.86;
+  font-weight: 1000;
+  white-space: nowrap;
+  paint-order: stroke fill;
+  -webkit-text-stroke: 0.035rem var(--story-ink);
+  text-shadow: 0.035em 0.035em 0 var(--story-ink);
+}
+
+.embedded-breakdown-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(0.66rem, 2.48vw, 0.82rem);
+  line-height: 1.04;
+  font-weight: 900;
+}
+
+.embedded-breakdown-empty p {
+  color: color-mix(in srgb, var(--story-ink) 68%, transparent);
+  font-size: clamp(0.66rem, 2.48vw, 0.82rem);
+  line-height: 1.12;
+  font-weight: 820;
+}
+
+.story-secondary-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.46rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.story-secondary-button,
+.story-sources-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--story-ink);
+  border-radius: 999px;
+  padding: 0.44rem 0.7rem;
+  color: var(--story-ink);
+  background: rgba(251, 250, 245, 0.62);
+  font-size: clamp(0.62rem, 2.25vw, 0.74rem);
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .story-detail-button {
   display: inline-flex;
   align-items: center;
@@ -1782,6 +1923,7 @@ button {
 }
 
 .story-detail-button:focus-visible,
+.story-secondary-button:focus-visible,
 .story-sources-button:focus-visible,
 .program-callout-source:focus-visible,
 .drilldown-row-button:focus-visible,
@@ -3192,15 +3334,16 @@ button.summary-chart-row {
     height: 100%;
     min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(20rem, 0.95fr);
+    grid-template-columns: minmax(0, 1.38fr) minmax(18rem, 0.98fr);
     grid-template-areas:
       "eyebrow chart"
       "kicker chart"
-      "number chart"
-      "title callouts"
-      "copy callouts"
-      "pill callouts"
-      "button mini";
+      "number breakdown"
+      "title breakdown"
+      "copy breakdown"
+      "pill breakdown"
+      "actions breakdown"
+      "mini breakdown";
     align-content: center;
     align-items: center;
     justify-items: start;
@@ -3254,8 +3397,16 @@ button.summary-chart-row {
     justify-self: center;
   }
 
-  .category-hit .story-detail-button {
-    grid-area: button;
+  .category-hit .embedded-breakdown {
+    grid-area: breakdown;
+    align-self: center;
+    justify-self: stretch;
+    width: 100%;
+    max-width: none;
+  }
+
+  .category-hit .story-secondary-actions {
+    grid-area: actions;
     justify-self: center;
   }
 
@@ -3303,6 +3454,33 @@ button.summary-chart-row {
 
   .program-callout > span {
     font-size: clamp(0.56rem, 0.8vw, 0.66rem);
+  }
+
+  .embedded-breakdown {
+    gap: clamp(0.42rem, 0.78vw, 0.62rem);
+    padding: clamp(0.62rem, 0.95vw, 0.84rem) clamp(0.72rem, 1vw, 0.92rem);
+  }
+
+  .embedded-breakdown-row {
+    grid-template-columns: minmax(5.4rem, 30%) auto minmax(0, 1fr);
+    gap: 0.58rem;
+  }
+
+  .embedded-breakdown-track {
+    height: clamp(0.95rem, 1.22vw, 1.16rem);
+  }
+
+  .embedded-breakdown-row strong {
+    font-size: clamp(1.05rem, 1.65vw, 1.42rem);
+  }
+
+  .embedded-breakdown-label {
+    font-size: clamp(0.7rem, 0.94vw, 0.84rem);
+  }
+
+  .story-secondary-button,
+  .story-sources-button {
+    font-size: clamp(0.64rem, 0.82vw, 0.76rem);
   }
 
   .story-watermark {
